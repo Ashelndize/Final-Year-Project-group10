@@ -7,7 +7,7 @@
 | Title | Phase 0 Exit Checklist and Requirements-Review Sign-off |
 | Version | 0.1 |
 | Date | 2026-11-04 |
-| Author | Both members (Member B compiled the artefact tracker; Member A verified the backend-facing evidence entries) |
+| Author | All three members (Member B compiled the artefact tracker; Member A verified backend-facing entries; Member C verified security/policy entries) |
 | Status | Draft for Phase 0 review |
 | Governs | MASTER_PROJECT_PROMPT.md "PHASE 0" (Steps 0.1–0.8 and "Phase 0 deliverables"), DOC-REQ-001 §12 and milestone M0 |
 | Companion documents | All documents in §2 below |
@@ -16,13 +16,13 @@
 
 ## 1. Gate rule (binding)
 
-> **No substantial implementation starts until this checklist is complete and signed by Member A, Member B and the project supervisor.**
+> **No substantial implementation starts until this checklist is complete and signed by Member A, Member B, Member C and the project supervisor.**
 
 "Substantial implementation" means any application code beyond what Phase 0 evidence collection requires: no models, no migrations, no endpoints, no screens, no dependencies added to `requirements.txt`/`pubspec.yaml` other than what a Phase 0 spike needs to prove feasibility. Permitted before signature: repository hygiene (`.gitignore`, `.env.example` as placeholders, folder README stubs), documentation, diagram tooling checks, and environment *inspection* (recording installed versions) — not environment *build-out*.
 
 This rule is inherited from the master prompt ("Do not proceed to substantial implementation until the requirements, MVP, critical design decisions, and acceptance criteria have been reviewed"; general rule 20 "Request human approval at phase gates") and from DOC-REQ-001 §5 governance rule 4.
 
-Related governance rules that operate at this gate: neither member signs off their own work — each runs the other's review list (DOC-REQ-001 §5 rule 1, `team-work-division.md` rule 3); requirement changes after signature go through DOC-REQ-012 §9 change control; unresolved items in §5 below are Phase 0 defects, not Phase 1 tasks.
+Related governance rules that operate at this gate: no member signs off their own work — each runs at least one other member's review list (DOC-REQ-001 §5 rule 1, `team-work-division.md` rule 3); requirement changes after signature go through DOC-REQ-012 §9 change control; unresolved items in §5 below are Phase 0 defects, not Phase 1 tasks.
 
 ## 2. Phase 0 document register (deliverable tracker)
 
@@ -35,20 +35,20 @@ Status legend: **Drafted — ready for review** = content complete for Phase 0 p
 | 3 | Business rules | `docs/00_requirements/business-rules.md` | DOC-REQ-003 | Member A | Drafted — ready for review (`BR-01`..`BR-38` plus `BR-02a`) |
 | 4 | Data requirements, ERD plan and data dictionary | `docs/00_requirements/data-requirements-and-erd-plan.md` | DOC-REQ-004 | Member A | Drafted — ready for review (entity inventory, cardinalities, fields/indexes, Mermaid ERD, retention map, §10 open data questions) |
 | 5 | API requirements / design (resource index, error contract, per-resource specs, throttle classes) | `docs/00_requirements/api-requirements.md` | DOC-REQ-005 | Member A | Drafted — ready for review (contract freeze planned at end of week 4, DOC-REQ-012 §6) |
-| 6 | Security requirements and threat model | `docs/00_requirements/security-and-threat-model.md` | DOC-REQ-006 | Member A | Drafted — ready for review (`THR-*` threat table, OWASP/API mapping, secure-configuration baseline) |
-| 7 | Privacy and GPS policy | §7 of `docs/00_requirements/security-and-threat-model.md` (folded in per DOC-REQ-000 §2) | DOC-REQ-006 | Member A | Drafted — ready for review (`POL-PRIV-01..10`, `POL-GPS-01..13`, purpose register, coordinate access rules) |
-| 8 | AI safety policy | `docs/00_requirements/ai-safety-policy.md` | DOC-REQ-007 | Member A | Drafted — ready for review (Part I, `POL-AI-01..12`, KB governance, 102-case safety set) |
-| 9 | Audit-trail and suspicious-activity policy | Part II of `docs/00_requirements/ai-safety-policy.md` (folded in per DOC-REQ-000 §2; not a standalone file) | DOC-REQ-007 | Member A | Drafted — ready for review (`POL-AUDIT-01..09`, `POL-SUS-01..10`, seven explainable rules, review workflow) |
+| 6 | Security requirements and threat model | `docs/00_requirements/security-and-threat-model.md` | DOC-REQ-006 | Member C (reassigned from Member A — see `team-work-division.md`) | Drafted — ready for review (`THR-*` threat table, OWASP/API mapping, secure-configuration baseline) |
+| 7 | Privacy and GPS policy | §7 of `docs/00_requirements/security-and-threat-model.md` (folded in per DOC-REQ-000 §2) | DOC-REQ-006 | Member C (reassigned from Member A — see `team-work-division.md`) | Drafted — ready for review (`POL-PRIV-01..10`, `POL-GPS-01..13`, purpose register, coordinate access rules) |
+| 8 | AI safety policy | `docs/00_requirements/ai-safety-policy.md` | DOC-REQ-007 | Member C (reassigned from Member A — see `team-work-division.md`) | Drafted — ready for review (Part I, `POL-AI-01..12`, KB governance, 102-case safety set) |
+| 9 | Audit-trail and suspicious-activity policy | Part II of `docs/00_requirements/ai-safety-policy.md` (folded in per DOC-REQ-000 §2; not a standalone file) | DOC-REQ-007 | Member C (reassigned from Member A — see `team-work-division.md`) | Drafted — ready for review (`POL-AUDIT-01..09`, `POL-SUS-01..10`, seven explainable rules, review workflow) |
 | 10 | User stories and use cases (workflows, diagrams, acceptance criteria) | `docs/00_requirements/user-stories-and-use-cases.md` | DOC-REQ-008 | Member B | Drafted — ready for review |
-| 11 | Architecture overview (layers, components, request lifecycle, auth/sync flows, deployment topology) | `docs/00_requirements/architecture-overview.md` | DOC-REQ-009 | Member A | Drafted — ready for review |
-| 12 | Access-control matrix (roles, operations, least privilege, object-level rules, negative tests) | `docs/00_requirements/access-control-matrix.md` | DOC-REQ-010 | Member A | Drafted — ready for review |
+| 11 | Architecture overview (layers, components, request lifecycle, auth/sync flows, deployment topology) | `docs/00_requirements/architecture-overview.md` | DOC-REQ-009 | Member C (reassigned from Member A — see `team-work-division.md`) | Drafted — ready for review |
+| 12 | Access-control matrix (roles, operations, least privilege, object-level rules, negative tests) | `docs/00_requirements/access-control-matrix.md` | DOC-REQ-010 | Member C (reassigned from Member A — see `team-work-division.md`) | Drafted — ready for review |
 | 13 | UI screen inventory and navigation flow | `docs/00_requirements/ui-screen-inventory.md` | DOC-REQ-011 | Member B | Drafted — ready for review |
-| 14 | MVP and release plan (incl. WBS, 14-week timeline, de-scope ladder, change control) | `docs/00_requirements/mvp-and-release-plan.md` | DOC-REQ-012 | Both | Drafted — ready for review |
-| 15 | Risk register | `docs/00_requirements/risk-register.md` | DOC-REQ-013 | Both | Drafted — ready for review (`RSK-01`..`RSK-24`) |
-| 16 | Test and acceptance plan (levels, entry/exit, defect log, UAT, gates) | `docs/00_requirements/test-and-acceptance-plan.md` | DOC-REQ-014 | Member A | Drafted — ready for review |
-| 17 | Phase 0 exit checklist (this document) | `docs/00_requirements/phase-0-exit-checklist.md` | DOC-REQ-015 | Both | Drafted — awaiting signature |
-| 18 | Requirements traceability matrix | `docs/00_requirements/requirements-traceability-matrix.md` | RTM-001 | Both | Skeleton — acceptable at Phase 0; populated per gate from week 2 (rule: no Implemented/Verified without an executed test) |
-| 19 | Team work division | `docs/00_requirements/team-work-division.md` | companion (no DOC-REQ ID) | Both | Done — see §6 item G-2 for the authorship reconciliation |
+| 14 | MVP and release plan (incl. WBS, 14-week timeline, de-scope ladder, change control) | `docs/00_requirements/mvp-and-release-plan.md` | DOC-REQ-012 | All three | Drafted — ready for review |
+| 15 | Risk register | `docs/00_requirements/risk-register.md` | DOC-REQ-013 | All three | Drafted — ready for review (`RSK-01`..`RSK-24`) |
+| 16 | Test and acceptance plan (levels, entry/exit, defect log, UAT, gates) | `docs/00_requirements/test-and-acceptance-plan.md` | DOC-REQ-014 | Member C (reassigned from Member A — see `team-work-division.md`) | Drafted — ready for review |
+| 17 | Phase 0 exit checklist (this document) | `docs/00_requirements/phase-0-exit-checklist.md` | DOC-REQ-015 | All three | Drafted — awaiting signature |
+| 18 | Requirements traceability matrix | `docs/00_requirements/requirements-traceability-matrix.md` | RTM-001 | All three | Skeleton — acceptable at Phase 0; populated per gate from week 2 (rule: no Implemented/Verified without an executed test) |
+| 19 | Team work division | `docs/00_requirements/team-work-division.md` | companion (no DOC-REQ ID) | All three | Updated for 3 members — see §6 item G-2 for authorship reconciliation |
 
 DOC-REQ-006 and DOC-REQ-007 are now written and verified present (threat model `THR-*`, `POL-PRIV-01..10`, `POL-GPS-01..13`; `POL-AI-*`, `POL-AUDIT-01..09`, `POL-SUS-01..10`), so they are no longer content blockers; the two documents deliberately fold the privacy/GPS and audit/suspicious-activity policies in as sections (DOC-REQ-000 §2). Items N/A in Phase 0 but tracked here so they are not lost: use-case diagram and low-fidelity wireframes (`docs/01_design/`, Phase 1, from DOC-REQ-011 §7), environment setup guide (`docs/02_setup/`, Phase 1, master prompt Step 0.8), deployment architecture finalisation (Phase 8), user/administrator manuals, test report, backup/restore guide, handover checklist (Phase 8), final report (Phase 9).
 
@@ -114,7 +114,7 @@ Gate condition: **items C-4..C-10 must be closed (or explicitly accepted by the 
 
 | # | Criterion | Measurable condition | Evidence location | Status |
 |---|---|---|---|---|
-| A-1 | **Requirements documented and reviewed** | (a) every module in DOC-REQ-002 has at least one FR with an acceptance criterion; (b) all four roles have stories with Given/When/Then; (c) each of DOC-REQ-001..015 exists with version, date, author, status headers; (d) both members have performed the cross-review and their comments are resolved or recorded | The 19-row register in §2 plus review comments logged in §8 | **Criteria (a)–(c) met; (d) in progress** — the review itself happens at the signature meeting, and §5 C-items are open review findings |
+| A-1 | **Requirements documented and reviewed** | (a) every module in DOC-REQ-002 has at least one FR with an acceptance criterion; (b) all four roles have stories with Given/When/Then; (c) each of DOC-REQ-001..015 exists with version, date, author, status headers; (d) all three members have performed the cross-review and their comments are resolved or recorded | The 19-row register in §2 plus review comments logged in §8 | **Criteria (a)–(c) met; (d) in progress** — the review itself happens at the signature meeting, and §5 C-items are open review findings |
 | A-2 | **MVP defined** | (a) R1 scope table lists included items with phase, story, screen and requirement references; (b) deferred items have a named target release; (c) permanent exclusions are enumerated; (d) R1 has a definition of done and a demo script | DOC-REQ-012 §2 (in/deferred/exclusions), §4 (screen map), §8 (DoD), §3 (R1 demo = E2E-01..05) | **Met**, subject to C-10 and supervisor confirmation of EXCL-14..16 |
 | A-3 | **Critical design decisions documented** | (a) `TD-01`..`TD-14` recorded with rationale; (b) architecture supplements `AD-01`..`AD-10` with alternatives and revisit triggers; (c) each external dependency has a fallback; (d) the permission model, conflict rule, publication rule and consent rule are stated numerically/testably | DOC-REQ-001 §10; DOC-REQ-009 §2, §6, §7, §9; DOC-REQ-001 §7.3 + DOC-REQ-013 §5; DOC-REQ-010 §2/§6, BR-19/FR-OFF-05, BR-04/BR-24, BR-06/NF-PRIV-04 | **Met** |
 | A-4 | Acceptance criteria defined for every phase gate | G-0..G-9 rows with the master-prompt criteria and the test levels that must be green | DOC-REQ-014 §15 | **Met** |
@@ -131,7 +131,7 @@ Gate condition: **items C-4..C-10 must be closed (or explicitly accepted by the 
 | B-2 | ~~DOC-REQ-007 AI safety policy **and** audit/suspicious-activity policy missing~~ **Resolved 2026-11-04** — `ai-safety-policy.md` Part I (`POL-AI-*`, KB governance, 102-case safety set) and Part II (`POL-AUDIT-01..09`, `POL-SUS-01..10`, review workflow) | Member A | Closed — reviewer comments only |
 | B-3 | Cross-document consistency items: C-1, C-2 closed; C-3 one note outstanding; **C-4..C-10 still open** | Member B (C-2 done, C-6, C-7-mobile, C-10), Member A (C-3 residue, C-4, C-5, C-7-backend, C-8, C-9, C-10) | Before signature |
 | B-4 | Supervisor decisions: Q-A/Q-C/Q-E in DOC-REQ-010 §7, DOC-REQ-008 §10 residue (Q2, Q3, Q4, Q5, Q9), DOC-REQ-004 §10, DOC-REQ-002 §14, G-4 schedule window, EXCL-14..16 approval | Supervisor + both members | At the review meeting |
-| B-5 | Governance reconciliation G-1 (README tree) and G-2 (authorship row in `team-work-division.md`) | Both | At signature |
+| B-5 | Governance reconciliation G-1 (README tree) and G-2 (authorship rows in `team-work-division.md`, now updated for 3 members) | All three | At signature |
 | B-6 | RTM-001 population rule accepted: every `US-*`/`UC-*`/`OR-*`/`AC-N-*`/`ST-*` referenced in this set must map to an FR/NF or be added to DOC-REQ-002 | Both | Before Phase 1 start |
 
 Items that are **not** blockers (recorded so they are not mistaken for one): wireframes and use-case/activity diagrams (Phase 1), environment setup guide (Phase 1), RTM content rows (progressive), deployment finalisation (Phase 8).
@@ -152,9 +152,9 @@ Items that are **not** blockers (recorded so they are not mistaken for one): wir
 
 Pre-condition for signing: §8 items B-3 (C-3 residue and C-4..C-10) and B-4 closed or formally waived by the supervisor; B-1 and B-2 are resolved and need only reviewer comments; §5 consistency edits reflected in the documents at the versions listed in §2.
 
-**Member A — backend/dashboard**
+**Member A — backend core**
 
-I confirm that the backend-facing requirements (DOC-REQ-001..006 as applicable, DOC-REQ-009, DOC-REQ-010, DOC-REQ-014) describe a system I am able to build within the agreed scope, that the permission model and the hard rules (server-side enforcement, human-only publication, audit on sensitive actions, consent-based location) are stated testably, and that the open items assigned to me are recorded.
+I confirm that the core backend requirements (DOC-REQ-001 through DOC-REQ-005 as applicable, accounts / farms / livestock / health_records / veterinary domain) describe a system I am able to build within the agreed scope, that the data model, authentication, RBAC, and API contract are stated testably, and that the open items assigned to me are recorded.
 
 | Field | Entry |
 |---|---|
@@ -165,7 +165,18 @@ I confirm that the backend-facing requirements (DOC-REQ-001..006 as applicable, 
 
 **Member B — mobile**
 
-I confirm that the user stories, screen inventory, release plan and risk register reflect what the mobile application can realistically deliver in the planned weeks, that each screen's required states are specified, and that the open items assigned to me are recorded.
+I confirm that the user stories, screen inventory, release plan and risk register reflect what the mobile application can realistically deliver in the planned weeks, that each screen's required states are specified, that the GPS/offline/AI-UI requirements are achievable within scope, and that the open items assigned to me are recorded.
+
+| Field | Entry |
+|---|---|
+| Name | ______________________________ |
+| Signature | ______________________________ |
+| Date | ______________________________ |
+| Conditions or reservations | ______________________________ |
+
+**Member C — advanced backend and dashboard**
+
+I confirm that the security, threat model, AI safety policy, audit policy, architecture overview, access-control matrix, and test plan (DOC-REQ-006 through DOC-REQ-010, DOC-REQ-014) describe a system I am able to build and test within the agreed scope, that the hard rules (human-only publication, audit on sensitive actions, AI read-only, suspicious-activity detection) are stated testably, and that the open items assigned to me are recorded.
 
 | Field | Entry |
 |---|---|

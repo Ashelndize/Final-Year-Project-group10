@@ -340,7 +340,13 @@ Before implementing features, review the master prompt and complete **Phase 0: R
 
 ## 18. Author and Academic Context
 
-This project is being developed as a Computer Science final-year project.
+This project is being developed as a Computer Science final-year project by a group of three members (Group 10).
+
+| Member | Primary responsibility |
+|---|---|
+| Member A | Backend core — Django REST Framework, MySQL, authentication, RBAC, core APIs |
+| Member B | Mobile application — Flutter, GPS/maps, offline sync, AI assistant UI |
+| Member C | Advanced backend and dashboard — disease reports, announcements, authority dashboard, security controls, AI backend, deployment |
 
 The final submission should include the approved research proposal, implemented software, technical documentation, testing evidence, and academic evaluation required by the institution.
 
