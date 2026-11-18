@@ -16,7 +16,7 @@
 
 ## 1. Gate rule (binding)
 
-> **No substantial implementation starts until this checklist is complete and signed by Member A, Member B, Member C and the project supervisor.**
+> **No substantial implementation starts until this checklist is complete and signed by Member A, Member B and Member C.**
 
 "Substantial implementation" means any application code beyond what Phase 0 evidence collection requires: no models, no migrations, no endpoints, no screens, no dependencies added to `requirements.txt`/`pubspec.yaml` other than what a Phase 0 spike needs to prove feasibility. Permitted before signature: repository hygiene (`.gitignore`, `.env.example` as placeholders, folder README stubs), documentation, diagram tooling checks, and environment *inspection* (recording installed versions) — not environment *build-out*.
 
@@ -95,7 +95,7 @@ These were found while writing DOC-REQ-008..015 against Member A's documents. Ea
 | C-9 | FR-AUTH-08 allows a farmer to authorise a specific verified veterinarian to access a named farm (farmer-granted, not request-derived) — a second access path this matrix must state | DOC-REQ-010 §4/§6 (new OR row) | Add the explicit-farm-authorisation rule and its revocation path, plus a negative test | Member A | Open |
 | C-10 | FR-NOTIF-07 permits an optional external push transport behind an interface, while EXCL-09 defers push | DOC-REQ-012 §2.3, DOC-REQ-009 §8.3 | State clearly: interface present, transport in-app only for acceptance; push is stretch | Both | Open |
 
-Gate condition: **items C-4..C-10 must be closed (or explicitly accepted by the supervisor) before signature.** C-1 and C-2 are closed with evidence; C-3 is partially closed (one note outstanding). The former B-1/B-2 blockers are resolved: DOC-REQ-006 and DOC-REQ-007 now exist and carry the threat model, GPS/privacy policy, AI-safety policy and audit/suspicious-activity policy that the other documents cite.
+Gate condition: **items C-4..C-10 must be closed (or explicitly accepted by all three members) before signature.** C-1 and C-2 are closed with evidence; C-3 is partially closed (one note outstanding). The former B-1/B-2 blockers are resolved: DOC-REQ-006 and DOC-REQ-007 now exist and carry the threat model, GPS/privacy policy, AI-safety policy and audit/suspicious-activity policy that the other documents cite.
 
 ## 6. Governance and follow-up items
 
@@ -104,7 +104,7 @@ Gate condition: **items C-4..C-10 must be closed (or explicitly accepted by the 
 | G-1 | README §8 document tree vs the master prompt's `docs/00_requirements/` structure | Two structures in one repo invites misfiled evidence | Update README §8 to the as-built tree at Phase 0 close |
 | G-2 | `team-work-division.md` (Phase 0 row) assigns the access matrix, architecture overview and test plan to Member B, while this document set records them as Member A-authored (backend-facing) | Ownership claims must be defensible in the commit history and the final report | Reconcile the row: Member A authors backend-facing documents, Member B authors mobile/UX-facing documents, both review — DOC-REQ-012 §2 ownership and DOC-REQ-014 §2 already assume this |
 | G-3 | Master prompt Step 0.5 names "activity diagrams"; DOC-REQ-008 supplies Mermaid flowchart/sequence diagrams | An examiner may look for UML swim-lanes | Either add UML activity diagrams in `docs/01_design/` for UC-05/06/08/10 or record in the report that Mermaid diagrams are the project's notation |
-| G-4 | Schedule window: DOC-REQ-001 CON-07 says one academic year; DOC-REQ-012 §1 plans 14 weeks | Scope and de-scope decisions differ | Supervisor confirms the window at signature (DOC-REQ-012 §1 reconciliation note) |
+| G-4 | Schedule window: DOC-REQ-001 CON-07 says one academic year; DOC-REQ-012 §1 plans 14 weeks | Scope and de-scope decisions differ | All three members confirm the window at signature (DOC-REQ-012 §1 reconciliation note) |
 | G-5 | Wireframes and use-case diagram not yet produced | Step 0.6 partially open | Scheduled in Phase 1 (DOC-REQ-011 §7); acceptable because inventory + navigation flows already fix scope |
 | G-6 | Environment setup guide not yet produced | Listed under Step 0.8 | Produced in Phase 1 (WP-01/WP-02); Phase 0 evidence is that the guide's acceptance criterion — reproducibility by the other member — is already written into DOC-REQ-014 gate G-1 |
 | G-7 | `.gitignore` and `.env.example` do not exist | Required before any code exists (CON-06, RSK-10) | Created as the first action after signature; permitted earlier as repo hygiene |
@@ -115,13 +115,13 @@ Gate condition: **items C-4..C-10 must be closed (or explicitly accepted by the 
 | # | Criterion | Measurable condition | Evidence location | Status |
 |---|---|---|---|---|
 | A-1 | **Requirements documented and reviewed** | (a) every module in DOC-REQ-002 has at least one FR with an acceptance criterion; (b) all four roles have stories with Given/When/Then; (c) each of DOC-REQ-001..015 exists with version, date, author, status headers; (d) all three members have performed the cross-review and their comments are resolved or recorded | The 19-row register in §2 plus review comments logged in §8 | **Criteria (a)–(c) met; (d) in progress** — the review itself happens at the signature meeting, and §5 C-items are open review findings |
-| A-2 | **MVP defined** | (a) R1 scope table lists included items with phase, story, screen and requirement references; (b) deferred items have a named target release; (c) permanent exclusions are enumerated; (d) R1 has a definition of done and a demo script | DOC-REQ-012 §2 (in/deferred/exclusions), §4 (screen map), §8 (DoD), §3 (R1 demo = E2E-01..05) | **Met**, subject to C-10 and supervisor confirmation of EXCL-14..16 |
+| A-2 | **MVP defined** | (a) R1 scope table lists included items with phase, story, screen and requirement references; (b) deferred items have a named target release; (c) permanent exclusions are enumerated; (d) R1 has a definition of done and a demo script | DOC-REQ-012 §2 (in/deferred/exclusions), §4 (screen map), §8 (DoD), §3 (R1 demo = E2E-01..05) | **Met**, subject to C-10 and team confirmation of EXCL-14..16 |
 | A-3 | **Critical design decisions documented** | (a) `TD-01`..`TD-14` recorded with rationale; (b) architecture supplements `AD-01`..`AD-10` with alternatives and revisit triggers; (c) each external dependency has a fallback; (d) the permission model, conflict rule, publication rule and consent rule are stated numerically/testably | DOC-REQ-001 §10; DOC-REQ-009 §2, §6, §7, §9; DOC-REQ-001 §7.3 + DOC-REQ-013 §5; DOC-REQ-010 §2/§6, BR-19/FR-OFF-05, BR-04/BR-24, BR-06/NF-PRIV-04 | **Met** |
 | A-4 | Acceptance criteria defined for every phase gate | G-0..G-9 rows with the master-prompt criteria and the test levels that must be green | DOC-REQ-014 §15 | **Met** |
 | A-5 | Risks identified, scored and owned | ≥ 20 scored risks, each with mitigation, owner and contingency; charter summary consistent with the register | DOC-REQ-013 §2/§3; DOC-REQ-001 §9 | **Met** |
 | A-6 | Testability preserved (no unverifiable requirement) | Every Must requirement reachable via `E2E-01..E2E-12` or a named test; every business rule has a negative test; nothing is asserted as passed in advance | DOC-REQ-014 §7, §5, §16; DOC-REQ-010 §8 | **Met** |
 | A-7 | No placeholder or invented completeness | Absent documents listed as **Not started** here; unexecuted tests listed as such; open questions enumerated instead of silently answered | §2, §5, §9 below | **Met** |
-| A-8 | Documentation quality standard met | Precise, testable statements; tables and diagrams used; no requirement text duplicated where an ID link suffices | Independent supervisor review | **Pending review** |
+| A-8 | Documentation quality standard met | Precise, testable statements; tables and diagrams used; no requirement text duplicated where an ID link suffices | Peer review by all three members | **Pending review** |
 
 ## 8. Outstanding items blocking signature (single actionable list)
 
@@ -130,16 +130,16 @@ Gate condition: **items C-4..C-10 must be closed (or explicitly accepted by the 
 | B-1 | ~~DOC-REQ-006 security/threat model **and** privacy/GPS policy missing~~ **Resolved 2026-11-04** — `security-and-threat-model.md` present with `THR-*` table, OWASP/API mapping, CFG baseline and §7 Privacy/GPS policy (`POL-PRIV-01..10`, `POL-GPS-01..13`) | Member A | Closed — reviewer comments only |
 | B-2 | ~~DOC-REQ-007 AI safety policy **and** audit/suspicious-activity policy missing~~ **Resolved 2026-11-04** — `ai-safety-policy.md` Part I (`POL-AI-*`, KB governance, 102-case safety set) and Part II (`POL-AUDIT-01..09`, `POL-SUS-01..10`, review workflow) | Member A | Closed — reviewer comments only |
 | B-3 | Cross-document consistency items: C-1, C-2 closed; C-3 one note outstanding; **C-4..C-10 still open** | Member B (C-2 done, C-6, C-7-mobile, C-10), Member A (C-3 residue, C-4, C-5, C-7-backend, C-8, C-9, C-10) | Before signature |
-| B-4 | Supervisor decisions: Q-A/Q-C/Q-E in DOC-REQ-010 §7, DOC-REQ-008 §10 residue (Q2, Q3, Q4, Q5, Q9), DOC-REQ-004 §10, DOC-REQ-002 §14, G-4 schedule window, EXCL-14..16 approval | Supervisor + both members | At the review meeting |
+| B-4 | Team decisions: Q-A/Q-C/Q-E in DOC-REQ-010 §7, DOC-REQ-008 §10 residue (Q2, Q3, Q4, Q5, Q9), DOC-REQ-004 §10, DOC-REQ-002 §14, G-4 schedule window, EXCL-14..16 approval | All three | At the review meeting |
 | B-5 | Governance reconciliation G-1 (README tree) and G-2 (authorship rows in `team-work-division.md`, now updated for 3 members) | All three | At signature |
-| B-6 | RTM-001 population rule accepted: every `US-*`/`UC-*`/`OR-*`/`AC-N-*`/`ST-*` referenced in this set must map to an FR/NF or be added to DOC-REQ-002 | Both | Before Phase 1 start |
+| B-6 | RTM-001 population rule accepted: every `US-*`/`UC-*`/`OR-*`/`AC-N-*`/`ST-*` referenced in this set must map to an FR/NF or be added to DOC-REQ-002 | All three | Before Phase 1 start |
 
 Items that are **not** blockers (recorded so they are not mistaken for one): wireframes and use-case/activity diagrams (Phase 1), environment setup guide (Phase 1), RTM content rows (progressive), deployment finalisation (Phase 8).
 
 ## 9. Decisions taken at this gate (to be confirmed in §10)
 
 1. Scope: R1 = Phases 1–3 (environment, auth + RBAC, core models, farmer mobile CRUD, health records, reminders); R2 = Phase 4; R3 = Phase 5; R4 = Phase 6; Phases 7–9 = acceptance/handover activity A1 (DOC-REQ-012 §3).
-2. Exclusions EXCL-01..13 confirmed, plus EXCL-14 (no farmer web portal — mobile only), EXCL-15 (single-country focus), EXCL-16 (no herd-production analytics) pending supervisor approval.
+2. Exclusions EXCL-01..13 confirmed, plus EXCL-14 (no farmer web portal — mobile only), EXCL-15 (single-country focus), EXCL-16 (no herd-production analytics) — confirmed by the team.
 3. Technical baseline `TD-01`..`TD-14` unchanged; architecture supplements `AD-01`..`AD-10` adopted (DOC-REQ-009 §9); AD-05 (Flutter state management) is a proposal to be confirmed by a week-2 spike.
 4. Permission model is default-deny with role gate **and** object rule; administrators hold no clinical read right; publication requires a human authority officer who is not the draft author (DOC-REQ-010 §1/§2, FR-ANN-03, BR-04/BR-24).
 5. Conflict rule for offline sync is last-write-wins-with-audit with a user-visible conflict state (BR-19, FR-OFF-05, ST-07); logout never silently loses a queued mutation (FR-OFF-07).
@@ -150,7 +150,7 @@ Items that are **not** blockers (recorded so they are not mistaken for one): wir
 
 ## 10. Sign-off
 
-Pre-condition for signing: §8 items B-3 (C-3 residue and C-4..C-10) and B-4 closed or formally waived by the supervisor; B-1 and B-2 are resolved and need only reviewer comments; §5 consistency edits reflected in the documents at the versions listed in §2.
+Pre-condition for signing: §8 items B-3 (C-3 residue and C-4..C-10) and B-4 closed by the team; B-1 and B-2 are resolved; §5 consistency edits reflected in the documents at the versions listed in §2.
 
 **Member A — backend core**
 
@@ -185,18 +185,7 @@ I confirm that the security, threat model, AI safety policy, audit policy, archi
 | Date | ______________________________ |
 | Conditions or reservations | ______________________________ |
 
-**Project supervisor**
-
-I have reviewed the Phase 0 requirements set, the MVP definition, the critical design decisions and the acceptance criteria. I approve progression to **Phase 1: Development environment and repository setup** and no substantial implementation beyond the gate rule in §1.
-
-| Field | Entry |
-|---|---|
-| Name | ______________________________ |
-| Signature | ______________________________ |
-| Date | ______________________________ |
-| Approved scope / conditions (including EXCL-14..16 and the schedule window, G-4) | ______________________________ |
-
-If the supervisor requests changes: record them as requirement deltas through DOC-REQ-012 §9 change control, update the affected documents to version 0.2, and re-sign. Phase 1 does not begin on verbal approval.
+If any member requests changes after signing: record them as requirement deltas through DOC-REQ-012 §9 change control, update the affected documents to version 0.2, and re-sign. Phase 1 does not begin until all three signatures are present.
 
 ## 11. Actions immediately after signature
 
