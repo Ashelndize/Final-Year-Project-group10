@@ -5,9 +5,9 @@
 | Project | Smart Livestock Health and Farm Management System |
 | Document ID | DOC-REQ-012 |
 | Title | MVP Definition, Release Plan, Work Breakdown and 14-Week Timeline |
-| Version | 0.1 |
-| Date | 2026-11-04 |
-| Author | Both members (compiled jointly; Member A owns backend estimates, Member B owns mobile estimates, gate criteria agreed) |
+| Version | 0.2 |
+| Date | 2026-11-18 |
+| Author | All three members (Member A owns backend estimates, Member B owns mobile estimates, Member C owns advanced-backend and dashboard estimates; gate criteria agreed jointly) |
 | Status | Draft for Phase 0 review |
 | Parent documents | DOC-REQ-001 charter (§4 scope/exclusions, §6 deliverables, §8.1 milestones, §10 TD list), DOC-REQ-002 SRS (priorities), DOC-REQ-008 stories, DOC-REQ-010 permissions, DOC-REQ-011 screens, DOC-REQ-013 risks |
 | Master-prompt step | Phase 0, Step 0.8 "WBS, timeline and milestones, MVP" |
@@ -16,11 +16,11 @@
 
 ## 1. Purpose
 
-Define the minimum viable product, the release sequence R1..R4, what is deliberately **not** in each release, the exclusions that never enter the project, the work breakdown that produces each release, and the week-by-week schedule for a two-person team inside one 14-week teaching semester.
+Define the minimum viable product, the release sequence R1..R4, what is deliberately **not** in each release, the exclusions that never enter the project, the work breakdown that produces each release, and the week-by-week schedule for a three-person team inside one 14-week teaching semester.
 
 **Terminology mapping.** DOC-REQ-001 §4.1 calls its in-scope set "MVP unless stated" and uses milestones `M0`..`M9`; DOC-REQ-002 §2.2 maps MoSCoW priorities onto MVP / Release 2 / Stretch. This document's releases are the delivery vehicles for those: **R1 = MVP (Phases 1–3)**, **R2 (Phase 4)**, **R3 (Phase 5)**, **R4 (Phase 6)**, followed by the acceptance/deployment/report activities of Phases 7–9 which are not a feature release. `Must` requirements land in R1 unless the requirement itself is a Phase 4–6 concern; `Should` items land in R2/R3; `Could` items are stretch and may be dropped without failing acceptance.
 
-**Schedule reconciliation (flagged for the supervisor).** CON-07 in DOC-REQ-001 states "two-person team, one academic year". This plan compresses **feature delivery (Phases 1–6) into 13 weeks and acceptance/deployment into week 14**, on the assumption that the assessment semester is ~14 weeks and that Phases 8–9 documentation/report work continues into the following examination period. If the supervisor confirms a full-year window, weeks 7–13 gains slack and the de-scope ladder (§7) is applied less aggressively. No scope is added if the window is longer; extra time buys testing, documentation quality and risk burn-down.
+**Schedule reconciliation (G-4).** CON-07 in DOC-REQ-001 states "three-person team, one academic year". This plan compresses **feature delivery (Phases 1–6) into 13 weeks and acceptance/deployment into week 14**, on the assumption that the assessment semester is ~14 weeks and that Phases 8–9 documentation/report work continues into the following examination period. If the team confirms a full-year window at Phase 0 sign-off, weeks 7–13 gain slack and the de-scope ladder (§7) is applied less aggressively. No scope is added if the window is longer; extra time buys testing, documentation quality, and risk burn-down.
 
 ## 2. MVP definition (R1)
 
@@ -62,7 +62,7 @@ This is the master prompt's Phase 3 acceptance criterion, and it is the smallest
 
 ### 2.4 Project-wide exclusions (never in any release)
 
-Carried from DOC-REQ-001 §4.2 with the numbering preserved, plus two additions proposed by this document.
+Carried from DOC-REQ-001 §4.2 with the numbering preserved, plus three additions proposed by this document and confirmed by the team at Phase 0 sign-off.
 
 | ID | Exclusion | Status |
 |---|---|---|
@@ -79,11 +79,9 @@ Carried from DOC-REQ-001 §4.2 with the numbering preserved, plus two additions 
 | EXCL-11 | Real-time farmer↔vet chat | Out |
 | EXCL-12 | Laboratory results and sample chain of custody | Out |
 | EXCL-13 | ML epidemiological forecasting | Out — summaries only |
-| EXCL-14 | **Web portal for farmers — farmers are mobile-only** | Proposed here; the dashboard exists for Authority/Admin staff only |
-| EXCL-15 | **Multi-country / multi-language scope — single-country focus** | Proposed here; area reference data is national-scope only, currency/locale variants out |
-| EXCL-16 | Her-production analytics (yield, weight trends, economics) | Proposed here; not in the objectives |
-
-EXCL-14..16 must be added to DOC-REQ-001 §4.2 at Phase 0 sign-off so both documents agree; until then they are provisional and marked here.
+| EXCL-14 | **Web portal for farmers — farmers are mobile-only** | Confirmed by team at Phase 0 sign-off |
+| EXCL-15 | **Multi-country / multi-language scope — single-country focus** | Confirmed by team at Phase 0 sign-off |
+| EXCL-16 | **Herd-production analytics (yield, weight trends, economics)** | Confirmed by team at Phase 0 sign-off |
 
 ## 3. Release plan
 
@@ -110,72 +108,75 @@ R1 has 20 mobile screens and no dashboard: the MVP is deliberately thin, and eve
 
 ## 5. Work breakdown structure
 
-Work packages are sized in **person-days (PD)** of focused effort, assuming a two-person team (Member A backend/dashboard, Member B mobile) and joint gates. Estimates are Phase 0 planning figures to be re-planned at each gate, not commitments.
+Work packages are sized in **person-days (PD)** of focused effort, assuming a three-person team (Member A: backend core, Member B: mobile, Member C: advanced backend + dashboard) and joint gates. Estimates are Phase 0 planning figures to be re-planned at each gate, not commitments.
 
 | WP | Work package | Phase | Owner | Est. PD | Produces |
 |---|---|---|---|---|---|
-| WP-00 | Phase 0 completion, sign-off, repo hygiene (`.gitignore`, `.env.example`) | 0 | Both | 3 | DOC-REQ-008..015, M0 |
-| WP-01 | Python/Django/MySQL/Flutter/Android toolchain verification, venv, health-check endpoint | 1 | A | 3 | M1 |
-| WP-02 | Flutter scaffold, theme, navigation shell, API service layer, env config | 1 | B | 3 | M1 |
-| WP-03 | Models + migrations + MySQL config (`utf8mb4`, least-privilege user), synthetic fixtures | 2 | A | 5 | M2 |
-| WP-04 | Auth (JWT, Argon2, reset), RBAC + object permission classes, audit writer | 2 | A | 6 | M2 |
-| WP-05 | Core CRUD APIs (farm, animal, health, vaccination, notifications) + validation + error envelope + pagination | 2 | A | 6 | M2 |
-| WP-06 | OpenAPI (drf-spectacular) publication + API contract freeze + change log | 2 | A | 2 | M2 gate blocker |
-| WP-07 | Backend unit/API/permission tests for R1 scope | 2 | A | 5 | M2 evidence |
-| WP-08 | Auth screens + session handling + profile in Flutter | 3 | B | 4 | M3 |
-| WP-09 | Farm + animal screens, list/search/filter, forms with validation | 3 | B | 6 | M3 |
-| WP-10 | Health/vaccination/schedule/reminder screens + states | 3 | B | 5 | M3 |
-| WP-11 | R1 integration walkthrough, widget tests, gate report | 3 | Both | 3 | R1 cut |
-| WP-12 | Map/geocoding spike + provider abstraction + consent design decision record | 4 | B | 3 | R2 |
-| WP-13 | Vet directory, area reference search, manual fallback API + UI | 4 | A+B | 5 | R2 |
-| WP-14 | Assistance request API, status machine, access grants (OR-02/OR-08) | 4 | A | 5 | R2 |
-| WP-15 | Assistance UI: request form, status timeline, vet case intake/work view | 4 | B | 6 | R2 |
-| WP-16 | Disease report model/API, jurisdiction rules (OR-03), evidence upload rules | 4 | A | 4 | R2 |
-| WP-17 | Report form + my-reports screens, escalation confirmation flow | 4 | B | 4 | R2 |
-| WP-18 | R2 gate: consent-denied matrix, permission tests, walkthrough | 4 | Both | 2 | R2 cut |
-| WP-19 | Dashboard scaffolding: templates, session auth, CSRF, base layout, staff login | 5 | A | 3 | R3 |
-| WP-20 | Review queue + review actions + status history | 5 | A | 5 | R3 |
-| WP-21 | Monitoring summaries (signals only, framing text) | 5 | A | 2 | R3 |
-| WP-22 | Announcement lifecycle: composer, four-eyes approve, publish/update/expire/withdraw, versioning | 5 | A | 6 | R3 |
-| WP-23 | Notification targeting fan-out + dispatch summary | 5 | A | 3 | R3 |
-| WP-24 | Audit viewer + user management + reference-data pages | 5 | A | 4 | R3 |
-| WP-25 | Mobile announcement surfaces (detail, list), report status detail, consent state in settings | 5 | B | 4 | R3 |
-| WP-26 | R3 gate: negative publication tests, jurisdiction isolation | 5 | Both | 2 | R3 cut |
-| WP-27 | Security hardening pass: rate limiting, input validation audit, secret scan, HTTPS config | 6 | A | 4 | R4 |
-| WP-28 | django-axes configuration + explainable rule engine + flags review page | 6 | A | 4 | R4 |
-| WP-29 | Offline local store, queue, idempotency keys, replay, conflict UX (ST-07) | 6 | B | 8 | R4 |
-| WP-30 | `SyncItem` ledger, replay dedup, conflict rule server-side (TD-09) | 6 | A | 5 | R4 |
-| WP-31 | Assistant service, KB seed + retrieval, provider interface, fallback, refusal list | 6 | A | 6 | R4 |
-| WP-32 | Assistant chat UI, citations, disclaimer, source viewer, KB curation page | 6 | B+A | 5 | R4 |
-| WP-33 | Notification surfaces completed, connection banner, queue screen | 6 | B | 3 | R4 |
-| WP-34 | R4 gate: offline matrix, AI safety suite, permission suite re-run | 6 | Both | 3 | R4 cut |
-| WP-35 | Phase 7: 12-step E2E, defect log burn-down, RTM completion, performance script, restore drill | 7 | Both | 8 | A1 |
-| WP-36 | Phase 8: production-like deployment, backups, manuals, handover package | 8 | Both | 6 | A1 |
-| WP-37 | Phase 9: final report chapters, slides, demo script, limitations | 9 | Both | 8 | M9 |
+| WP-00 | Phase 0 completion, sign-off, repo hygiene (`.gitignore`, `.env.example`) | 0 | All three | 3 | DOC-REQ-008..015, M0 |
+| WP-01 | Python/Django/MySQL toolchain verification, venv, Django project scaffold, MySQL db + least-privilege user, health-check endpoint | 1 | A | 3 | M1 |
+| WP-02 | Flutter scaffold, theme, navigation shell, API service layer stub, env config | 1 | B | 3 | M1 |
+| WP-03 | Repo hygiene (`.gitignore`, `.env.example`), folder layout (`backend/`, `mobile/`, `docs/` stubs), setup guide (`docs/02_setup/`), architecture diagram stub (`docs/01_design/`) | 1 | C | 2 | M1 |
+| WP-04 | accounts / farms / livestock / health_records / veterinary models + migrations + MySQL config (`utf8mb4`, least-privilege user), synthetic fixtures | 2 | A | 5 | M2 |
+| WP-05 | Auth (JWT, Argon2, reset), RBAC + object permission classes, audit writer | 2 | A | 6 | M2 |
+| WP-06 | Core CRUD APIs (farm, animal, health, vaccination, notifications pull) + validation + error envelope + pagination | 2 | A | 6 | M2 |
+| WP-07 | disease_reports / announcements / notifications / audit / sync / assistant models + endpoint skeletons | 2 | C | 6 | M2 |
+| WP-08 | drf-spectacular schema setup, OpenAPI publication, API contract freeze + change log | 2 | C | 2 | M2 gate blocker |
+| WP-09 | Backend unit/API/permission tests for R1 scope | 2 | A | 5 | M2 evidence |
+| WP-10 | Auth screens + session handling + profile in Flutter | 3 | B | 4 | M3 |
+| WP-11 | Farm + animal screens, list/search/filter, forms with validation | 3 | B | 6 | M3 |
+| WP-12 | Health/vaccination/schedule/reminder screens + states | 3 | B | 5 | M3 |
+| WP-13 | Notifications API backend: pull inbox, dispatch hook seam | 3 | C | 2 | M3 |
+| WP-14 | R1 integration walkthrough, widget tests, gate report | 3 | All three | 3 | R1 cut |
+| WP-15 | Map/geocoding spike + provider abstraction + consent design decision record | 4 | B | 3 | R2 |
+| WP-16 | Vet directory, area reference search, manual fallback API + UI | 4 | A+B | 5 | R2 |
+| WP-17 | Assistance request API, status machine, access grants (OR-02/OR-08) | 4 | A | 5 | R2 |
+| WP-18 | Assistance UI: request form, status timeline, vet case intake/work view | 4 | B | 6 | R2 |
+| WP-19 | Disease report model/API, jurisdiction rules (OR-03), evidence upload rules, report-related notification dispatch | 4 | C | 4 | R2 |
+| WP-20 | Disease report form + my-reports screens, escalation confirmation flow | 4 | B | 4 | R2 |
+| WP-21 | R2 gate: consent-denied matrix, permission tests, walkthrough | 4 | All three | 2 | R2 cut |
+| WP-22 | Dashboard scaffolding: templates, session auth, CSRF, base layout, staff login | 5 | C | 3 | R3 |
+| WP-23 | Review queue + review actions + status history | 5 | C | 5 | R3 |
+| WP-24 | Monitoring summaries (signals only, framing text) | 5 | C | 2 | R3 |
+| WP-25 | Announcement lifecycle: composer, four-eyes approve, publish/update/expire/withdraw, versioning | 5 | C | 6 | R3 |
+| WP-26 | Announcement API backend + notification targeting fan-out + dispatch summary | 5 | A | 4 | R3 |
+| WP-27 | Audit viewer + user management + reference-data pages | 5 | C | 4 | R3 |
+| WP-28 | Mobile announcement surfaces (detail, list), report status detail, consent state in settings | 5 | B | 4 | R3 |
+| WP-29 | R3 gate: negative publication tests, jurisdiction isolation | 5 | All three | 2 | R3 cut |
+| WP-30 | Security hardening pass: rate limiting, input validation audit, secret scan, HTTPS config | 6 | A | 4 | R4 |
+| WP-31 | django-axes configuration + explainable rule engine + suspicious-activity flags review page | 6 | C | 4 | R4 |
+| WP-32 | Offline local store, queue, idempotency keys, replay, conflict UX (ST-07) | 6 | B | 8 | R4 |
+| WP-33 | `SyncItem` ledger, replay dedup, conflict rule server-side (TD-09) | 6 | C | 5 | R4 |
+| WP-34 | Assistant service, KB seed + retrieval, provider interface, fallback, refusal list | 6 | C | 6 | R4 |
+| WP-35 | Assistant chat UI, citations, disclaimer, source viewer, KB curation page | 6 | B+C | 5 | R4 |
+| WP-36 | Notification surfaces completed, connection banner, queue screen | 6 | B | 3 | R4 |
+| WP-37 | R4 gate: offline matrix, AI safety suite, permission suite re-run | 6 | All three | 3 | R4 cut |
+| WP-38 | Phase 7: 12-step E2E, defect log burn-down, RTM completion, performance script, restore drill | 7 | All three | 8 | A1 |
+| WP-39 | Phase 8: production-like deployment, backups, manuals, handover package | 8 | All three | 6 | A1 |
+| WP-40 | Phase 9: final report chapters, slides, demo script, limitations, maintenance plan | 9 | All three | 8 | M9 |
 
-Totals: ≈ 152 person-days of effort across 14 weeks. Capacity ≈ 2 members × 5 days × 14 weeks = 140 available days **before** meetings, lectures, and other modules. The plan is therefore already over-committed on paper, which is the reason for §7's ladder rather than added scope; WP-12, WP-06 and WP-07 are the early warning items — if the geocoding spike or the contract freeze slips, the ladder is applied at the week 9 gate.
+Totals: ≈ 180 person-days of effort across 14 weeks. Capacity ≈ 3 members × 5 days × 14 weeks = 210 available days before meetings, lectures, and other modules. The plan is therefore feasible on paper (86% utilisation), though the week-4 API contract freeze (WP-08) and the week-12–13 offline and AI bundle (WP-32..WP-35) remain the highest-risk items; the de-scope ladder (§7) is applied at the week-9 and week-11 gates if either slips.
 
-## 6. Timeline (14 weeks, two-person team)
+## 6. Timeline (14 weeks, three-person team)
 
-| Week | Member A (backend/dashboard) | Member B (mobile) | Gate / output |
-|---|---|---|---|
-| 1 | WP-00 sign-off, WP-01 toolchain, MySQL db + user, health check | WP-00 review, WP-02 Flutter scaffold, emulator | **M1** environment reproducible (each member installs from the other's guide) |
-| 2 | WP-03 models/migrations, WP-04 auth start | WP-02 API service layer, navigation shell, theme | — |
-| 3 | WP-04 RBAC + permission classes + audit writer | WP-08 auth screens, session handling | — |
-| 4 | WP-05 core CRUD APIs, WP-06 OpenAPI + **contract freeze** | WP-09 farm + animal screens against the frozen contract | Contract freeze blocks mobile API work (charter §8.1) |
-| 5 | WP-05 health/vaccination/notifications APIs, WP-07 backend tests | WP-10 health/vaccination/schedule/reminders screens, states | — |
-| 6 | WP-11 joint integration + fixes | WP-11 widget tests + walkthrough | **M2/M3 gate, R1 cut (MVP demo).** Buffer used if consumed in weeks 2–5 |
-| 7 | WP-13 directory/search API, WP-14 assistance API start | WP-12 geocoding/consent spike, WP-15 request form | — |
-| 8 | WP-14 grants + status machine, WP-16 report API | WP-13/15 area selection, map + list, case intake | — |
-| 9 | WP-16 evidence + jurisdiction rules | WP-17 report screens, escalation flow, WP-18 tests | **M4 gate, R2 cut** (ladder decision point) |
-| 10 | WP-19 dashboard shell, WP-20 review queue + actions, WP-21 | WP-25 announcement surfaces, consent-state settings, report status screens | — |
-| 11 | WP-22 announcement lifecycle, WP-23 fan-out, WP-24 audit/user pages | WP-25 completion + dashboard UI review support | **M5 gate, R3 cut** |
-| 12 | WP-27 hardening, WP-28 axes + rules, WP-30 sync ledger | WP-29 offline queue + sync + conflict UX | — |
-| 13 | WP-31 assistant + KB, WP-32 curation page | WP-32 chat UI, WP-33 banner/queue screens, WP-34 tests | **M6 gate, R4 cut** |
-| 14 | WP-35 E2E + defect burn-down + restore drill, WP-36 deploy prep | WP-35 Flutter/integration/E2E support, WP-36 APK build + manuals | **M7 acceptance; M8 deployment evidence** |
-| after week 14 | WP-37 report chapters (backend/testing), maintenance plan | WP-37 report chapters (mobile/UX), demo script, slides | **M9 final report, demo, handover** |
+| Week | Member A — backend core | Member B — mobile | Member C — advanced backend + dashboard | Gate / output |
+|---|---|---|---|---|
+| 1 | WP-00 sign-off, WP-01 toolchain + Django project + MySQL db + health check | WP-00 review, WP-02 Flutter scaffold, emulator setup | WP-00 review, WP-03 `.gitignore` / `.env.example` / folder layout / setup guide | **M1** environment reproducible (each member verifies from the guide) |
+| 2 | WP-04 models + migrations start, WP-05 auth start | WP-02 API service layer, navigation shell, theme | WP-07 advanced models start, WP-08 drf-spectacular setup | — |
+| 3 | WP-05 RBAC + permission classes + audit writer | WP-10 auth screens, session handling | WP-07 advanced models/endpoints, WP-08 schema wiring | — |
+| 4 | WP-06 core CRUD APIs | WP-11 farm + animal screens against the frozen contract | WP-07 endpoints completion, WP-08 OpenAPI + **contract freeze** | Contract freeze (WP-08) blocks all mobile API work beyond WP-11 |
+| 5 | WP-06 health/vaccination APIs, WP-09 backend tests | WP-12 health/vaccination/schedule/reminder screens, states | WP-13 notifications API, WP-09 test support | — |
+| 6 | WP-14 integration + fixes | WP-14 widget tests + walkthrough | WP-14 E2E support, gate report | **M2/M3 gate, R1 cut (MVP demo).** Buffer used if consumed in weeks 2–5 |
+| 7 | WP-16 vet directory API, WP-17 assistance API start | WP-15 geocoding/consent spike, WP-18 request form | WP-19 disease report model/API start | — |
+| 8 | WP-17 grants + status machine | WP-16 area selection + map/list, WP-18 case intake | WP-19 jurisdiction rules + evidence upload | — |
+| 9 | WP-26 announcement API start | WP-20 report screens, escalation flow | WP-19 completion, WP-21 permission tests | **M4 gate, R2 cut** (ladder decision point) |
+| 10 | WP-26 notification dispatch | WP-28 announcement surfaces, consent-state settings | WP-22 dashboard shell, WP-23 review queue + actions | — |
+| 11 | WP-26 completion | WP-28 completion + dashboard UI review support | WP-24 monitoring summaries, WP-25 announcement lifecycle, WP-27 audit/user pages | **M5 gate, R3 cut** |
+| 12 | WP-30 security hardening | WP-32 offline queue + sync + conflict UX | WP-31 django-axes + rules, WP-33 sync ledger | — |
+| 13 | WP-30 completion, WP-37 gate support | WP-35 chat UI, WP-36 connection banner, WP-37 tests | WP-34 assistant KB, WP-35 curation page, WP-37 tests | **M6 gate, R4 cut** |
+| 14 | WP-38 E2E + defect burn-down + restore drill, WP-39 backend deploy | WP-38 Flutter/integration support, WP-39 APK + mobile manual | WP-38 E2E coordination, WP-39 dashboard deploy + admin manual | **M7 acceptance; M8 deployment evidence** |
+| after week 14 | WP-40 backend/security chapters, maintenance plan | WP-40 mobile/UX chapters, demo script, slides | WP-40 AI/advanced-features chapter, limitations, recommendations | **M9 final report, demo, handover** |
 
-Assumptions behind the schedule: ~5 working days per member per week available for the project, minus university commitments; weeks 6, 9, 11 and 13 end on a gate, and a failed gate stops the next phase from starting (master prompt rule 20). Only week 6 carries a declared buffer; everything else is fully consumed — which is stated plainly rather than presented as comfortable.
+Assumptions behind the schedule: ~5 working days per member per week available for the project, minus university commitments; weeks 6, 9, 11 and 13 end on a gate, and a failed gate stops the next phase from starting (master prompt rule 20). Week 6 carries a declared buffer; everything else is fully consumed — which is stated plainly rather than presented as comfortable.
 
 ## 7. De-scope ladder (applied in this order when a week is lost)
 
@@ -199,21 +200,21 @@ A release is cut only when all of the following are true and evidenced:
 4. Every screen in the release has loading/empty/error/offline states implemented (DOC-REQ-011 §6).
 5. OpenAPI schema regenerated and matching (MVP+ releases), with the changelog entry if the contract moved (charter §5 rule 2).
 6. RTM-001 rows for the release's requirement links filled with real test IDs and results.
-7. Defects at severity Critical/High are closed or formally accepted by the supervisor with rationale.
+7. Defects at severity Critical/High are closed or formally accepted by all three members with rationale recorded.
 8. No secrets in the repo (secret scan clean), `.env.example` updated if configuration changed.
-9. The other member has executed the acceptance checklist (cross-run rule in `team-work-division.md`).
+9. At least one other member has executed the acceptance checklist (cross-run rule in `team-work-division.md`).
 10. Demo artefacts for the release (script, device build, seeded synthetic data) committed or archived.
 
 ## 9. Change control
 
 | Situation | Required action |
 |---|---|
-| New feature request mid-semester | Written into DOC-REQ-002/008 with a priority and release target, then approved by the supervisor before implementation. No silent additions |
-| API contract change | Both members sign off; DOC-REQ-005 changelog + regenerated schema (charter §5 rule 2) |
+| New feature request mid-semester | Written into DOC-REQ-002/008 with a priority and release target, then approved by all three members before implementation. No silent additions |
+| API contract change | All three members sign off; DOC-REQ-005 changelog + regenerated schema (charter §5 rule 2) |
 | Permission change | DOC-REQ-010 row updated **first**, then code, then the `TC-PERM-*` test; the matrix is the contract |
 | Scope cut | Apply §7 ladder, record which step was used and why, note it in the final report's limitations |
 | Schedule slip > 1 week | Re-plan at the next gate, do not add hours to the estimate silently |
-| New dependency | Justification note (master prompt Phase 1) + supervisor approval + risk-register entry if it adds availability/cost risk |
+| New dependency | Justification note (master prompt Phase 1) + all three members agree + risk-register entry if it adds availability/cost risk |
 
 ## 10. Success criteria inherited for this plan
 
@@ -232,4 +233,4 @@ A release is cut only when all of the following are true and evidenced:
 
 ## 11. Risks that specifically threaten this plan
 
-Cross-references to DOC-REQ-013: `RSK-01` scope exceeds capacity, `RSK-11` teammate availability, `RSK-02`/`RSK-12` toolchain and library incompatibility, `RSK-05`/`RSK-14` offline conflict complexity, `RSK-04` map provider, `RSK-06` AI safety, `RSK-15` documentation/grade risk, `RSK-17` free-tier cold starts. The two highest-consequence schedule items are the week-4 API contract freeze (blocks all mobile API work) and the week-12–13 offline bundle; both have named mitigations in DOC-REQ-013 and §7 above.
+Cross-references to DOC-REQ-013: `RSK-01` scope exceeds capacity, `RSK-11` teammate availability, `RSK-02`/`RSK-12` toolchain and library incompatibility, `RSK-05`/`RSK-14` offline conflict complexity, `RSK-04` map provider, `RSK-06` AI safety, `RSK-15` documentation/grade risk, `RSK-17` free-tier cold starts. The two highest-consequence schedule items are the week-4 API contract freeze (WP-08, blocks all mobile API work) and the week-12–13 offline and AI bundle (WP-32..WP-35); both have named mitigations in DOC-REQ-013 and §7 above.

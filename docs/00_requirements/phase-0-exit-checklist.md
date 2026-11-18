@@ -192,6 +192,6 @@ If any member requests changes after signing: record them as requirement deltas 
 1. Commit this document set with a tag `phase-0-exit` and note the version numbers of all 19 artefacts in the commit message.
 2. Create repo hygiene files: `.gitignore`, `.env.example` (placeholders only), and the `docs/01_design/`, `docs/02_setup/`, `docs/03_testing/`, `docs/04_deployment/`, `docs/05_final_report/`, `backend/`, `mobile/`, `tests/` folders with one-line purpose stubs (no application code).
 3. Correct README §8 to the as-built tree (G-1) and reconcile `team-work-division.md` Phase 0 authorship row (G-2).
-4. Start WP-01/WP-02 (DOC-REQ-012 §5) and record toolchain evidence for RSK-02, RSK-12, RSK-13 in week 1 — these three risks retire only on executed proof, not on plan.
+4. Start WP-01/WP-02/WP-03 (DOC-REQ-012 §5) and record toolchain evidence for RSK-02, RSK-12, RSK-13 in week 1 — these three risks retire only on executed proof, not on plan.
 5. Register RTM-001 rows for every requirement implemented from week 2 onward.
 6. Schedule the week-4 API contract freeze (DOC-REQ-005 + regenerated OpenAPI schema) and put it on the calendar now, because mobile API work is blocked behind it.
