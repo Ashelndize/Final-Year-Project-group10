@@ -1,0 +1,34 @@
+class ApiEndpoints {
+  static const String baseUrl = 'http://10.0.2.2:8000/api/v1';
+
+  // Auth
+  static const String register = '$baseUrl/auth/register/';
+  static const String login = '$baseUrl/auth/login/';
+  static const String logout = '$baseUrl/auth/logout/';
+  static const String tokenRefresh = '$baseUrl/auth/token/refresh/';
+  static const String me = '$baseUrl/auth/me/';
+  static const String farmerProfile = '$baseUrl/auth/farmer-profile/';
+  static const String vetProfile = '$baseUrl/auth/vet-profile/';
+
+  // Farms
+  static const String farms = '$baseUrl/farms/';
+  static String farmDetail(int id) => '$baseUrl/farms/$id/';
+
+  // Animals
+  static const String animals = '$baseUrl/animals/';
+  static String animalDetail(int id) => '$baseUrl/animals/$id/';
+
+  // Health
+  static const String healthRecords = '$baseUrl/health-records/';
+  static String healthRecordDetail(int id) => '$baseUrl/health-records/$id/';
+
+  // Vaccinations
+  static const String vaccinationSchedules = '$baseUrl/vaccination-schedules/';
+  static const String vaccinationRecords = '$baseUrl/vaccination-records/';
+  static const String vaccinationProtocols = '$baseUrl/vaccination-protocols/';
+
+  // Notifications
+  static const String notifications = '$baseUrl/notifications/';
+  static String markRead(int id) => '$baseUrl/notifications/$id/mark_read/';
+  static const String markAllRead = '$baseUrl/notifications/mark_all_read/';
+}
