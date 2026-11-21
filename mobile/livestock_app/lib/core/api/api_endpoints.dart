@@ -9,6 +9,7 @@ class ApiEndpoints {
   static const String me = '$baseUrl/auth/me/';
   static const String farmerProfile = '$baseUrl/auth/farmer-profile/';
   static const String vetProfile = '$baseUrl/auth/vet-profile/';
+  static const String vets = '$baseUrl/auth/vets/';
 
   // Farms
   static const String farms = '$baseUrl/farms/';
@@ -31,4 +32,16 @@ class ApiEndpoints {
   static const String notifications = '$baseUrl/notifications/';
   static String markRead(int id) => '$baseUrl/notifications/$id/mark_read/';
   static const String markAllRead = '$baseUrl/notifications/mark_all_read/';
+
+  // Veterinary assistance
+  static const String assistanceRequests = '$baseUrl/assistance-requests/';
+  static String assistanceRequestDetail(int id) =>
+      '$baseUrl/assistance-requests/$id/';
+  static String respondToRequest(int id) =>
+      '$baseUrl/assistance-requests/$id/respond/';
+
+  // Disease reports
+  static const String diseaseReports = '$baseUrl/disease-reports/';
+  static String diseaseReportDetail(int id) =>
+      '$baseUrl/disease-reports/$id/';
 }

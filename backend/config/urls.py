@@ -15,6 +15,8 @@ urlpatterns = [
     path('api/v1/', include('health.urls')),
     path('api/v1/', include('notifications.urls')),
     path('api/v1/', include('audit.urls')),
+    path('api/v1/', include('veterinary.urls')),
+    path('api/v1/', include('reports.urls')),
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
     path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
     path('api/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),

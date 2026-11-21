@@ -13,6 +13,11 @@ import '../features/health/screens/health_list_screen.dart';
 import '../features/health/screens/health_form_screen.dart';
 import '../features/vaccinations/screens/vaccination_schedule_screen.dart';
 import '../features/notifications/screens/notification_screen.dart';
+import '../features/veterinary/screens/vet_directory_screen.dart';
+import '../features/veterinary/screens/assistance_request_form_screen.dart';
+import '../features/veterinary/screens/assistance_request_list_screen.dart';
+import '../features/reports/screens/disease_report_form_screen.dart';
+import '../features/reports/screens/disease_report_list_screen.dart';
 
 GoRouter createRouter(AuthProvider authProvider) {
   return GoRouter(
@@ -52,18 +57,21 @@ GoRouter createRouter(AuthProvider authProvider) {
       ),
       GoRoute(
         path: '/animals/:id',
-        builder: (_, state) =>
-            AnimalDetailScreen(animalId: int.parse(state.pathParameters['id']!)),
+        builder: (_, state) => AnimalDetailScreen(
+          animalId: int.parse(state.pathParameters['id']!),
+        ),
       ),
       GoRoute(
         path: '/animals/:id/health',
-        builder: (_, state) =>
-            HealthListScreen(animalId: int.parse(state.pathParameters['id']!)),
+        builder: (_, state) => HealthListScreen(
+          animalId: int.parse(state.pathParameters['id']!),
+        ),
       ),
       GoRoute(
         path: '/animals/:id/health/new',
-        builder: (_, state) =>
-            HealthFormScreen(animalId: int.parse(state.pathParameters['id']!)),
+        builder: (_, state) => HealthFormScreen(
+          animalId: int.parse(state.pathParameters['id']!),
+        ),
       ),
       GoRoute(
         path: '/vaccinations',
@@ -72,6 +80,28 @@ GoRouter createRouter(AuthProvider authProvider) {
       GoRoute(
         path: '/notifications',
         builder: (_, __) => const NotificationScreen(),
+      ),
+      // Phase 4 — Veterinary assistance
+      GoRoute(
+        path: '/vets',
+        builder: (_, __) => const VetDirectoryScreen(),
+      ),
+      GoRoute(
+        path: '/assistance',
+        builder: (_, __) => const AssistanceRequestListScreen(),
+      ),
+      GoRoute(
+        path: '/assistance/new',
+        builder: (_, __) => const AssistanceRequestFormScreen(),
+      ),
+      // Phase 4 — Disease reports
+      GoRoute(
+        path: '/reports',
+        builder: (_, __) => const DiseaseReportListScreen(),
+      ),
+      GoRoute(
+        path: '/reports/new',
+        builder: (_, __) => const DiseaseReportFormScreen(),
       ),
     ],
   );

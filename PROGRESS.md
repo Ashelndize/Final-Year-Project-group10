@@ -1181,3 +1181,176 @@ Ran 5 tests in ~3.5s — All tests passed!
 | `ErrorWidget2` (not `ErrorWidget`) | Avoids shadowing Flutter's built-in `ErrorWidget` class |
 | `displayName` falls back to `tagNumber` | Animals may not have a name; tag number always uniquely identifies them |
 | `statusColor` on health records | Colour-coded at model layer so all screens get consistent colours without duplicating logic |
+
+---
+
+## Session — 2026-11-21 (Phase 4: GPS, Veterinary Assistance, and Disease Reporting)
+
+### What was accomplished
+
+Full Phase 4 implementation: two new backend Django apps (`veterinary`, `reports`), GPS location service with consent handling, vet directory with OpenStreetMap map, assistance request flow, and structured disease reporting. All tied into the Flutter router and provider tree.
+
+**Executed by:** Claude Code agent (all files written via Write/Edit tools + Bash for migrations and tests)
+**Work packages:** WP-15, WP-16, WP-17, WP-18 (GPS + vet + disease reporting)
+
+---
+
+### Map provider decision
+
+| Decision | Detail |
+|---|---|
+| Provider | OpenStreetMap (free, no API key) via `flutter_map` package |
+| Tile URL | `https://tile.openstreetmap.org/{z}/{x}/{y}.png` |
+| Pricing | Free for reasonable use; attribution required |
+| Privacy | Tile requests contain no user data beyond IP |
+| GPS package | `geolocator ^13.0.2` — cross-platform, no key required |
+| Permission package | `permission_handler ^11.3.1` — Android runtime permission UI |
+
+---
+
+### Commands run and results
+
+```
+# Backend
+python manage.py makemigrations veterinary reports   → No changes detected (migrations pre-written)
+python manage.py migrate                              → reports.0001_initial OK, veterinary.0001_initial OK
+python manage.py test veterinary reports accounts farms animals health health_check audit --verbosity=2
+  → Ran 43 tests in 10.775s — OK (33 original + 10 new Phase 4 tests)
+
+# Flutter
+flutter pub get      → Dependencies resolved (flutter_map 7.0.2, geolocator 13.0.4, latlong2 0.9.1, permission_handler 11.4.0)
+flutter analyze      → 3 issues found → fixed → No issues found!
+flutter test         → 5/5 passed (All tests passed!)
+```
+
+---
+
+### Fixes applied
+
+| Issue | Root cause | Fix |
+|---|---|---|
+| `flutter analyze` — `value` deprecated on `DropdownButtonFormField` (×2) | Flutter 3.33+ replaced `value:` with `initialValue:` on form fields | Changed to `initialValue:` in `disease_report_form_screen.dart` and `assistance_request_form_screen.dart` |
+| `flutter analyze` — missing trailing comma in `disease_report_form_screen.dart` | TextStyle constructor not formatted for multi-line lint rule | Added trailing commas |
+| Backend tests — `TypeError` in `AuditEvent.log()` | Views passed `target=instance, request=request` but log() signature expects `target_type`, `target_id` as separate strings | Fixed all 5 `AuditEvent.log()` calls in `veterinary/views.py` and `reports/views.py` |
+
+---
+
+### Test results
+
+#### Backend — 43/43 PASSED
+
+| App | Tests | Result |
+|---|---|---|
+| veterinary | 5 | ALL PASS |
+| reports | 5 | ALL PASS |
+| accounts | 13 | ALL PASS |
+| farms | 6 | ALL PASS |
+| animals | 4 | ALL PASS |
+| health | 3 | ALL PASS |
+| audit | 2 | ALL PASS |
+| health_check | 5 | ALL PASS |
+| **Total** | **43** | **OK** |
+
+#### Flutter — 5/5 PASSED
+
+Same 5 widget/unit tests from Phase 3 — all still passing.
+
+---
+
+### Files created this session — 20 backend files + 15 Flutter files
+
+#### Backend — `veterinary` app (10 files)
+
+| File | Purpose |
+|---|---|
+| `backend/veterinary/__init__.py` | Package marker |
+| `backend/veterinary/apps.py` | VeterinaryConfig |
+| `backend/veterinary/models.py` | `VetAssistanceRequest` — 6 statuses (PENDING → COMPLETED), optional vet FK, farm FK, animal FK, GPS coordinates gated by `location_consent` |
+| `backend/veterinary/serializers.py` | Create serializer (farmer-only, farm ownership check, consent stripping) + vet update serializer (status restricted to vet-allowed set) |
+| `backend/veterinary/views.py` | `VetAssistanceRequestViewSet` — role-scoped queryset; `/respond/` PATCH action for vets |
+| `backend/veterinary/urls.py` | DefaultRouter — `/api/v1/assistance-requests/` |
+| `backend/veterinary/admin.py` | List display + raw_id_fields |
+| `backend/veterinary/tests.py` | 5 tests: farmer creates, vet blocked from creating, farmer sees only own, vet responds, location stripped without consent |
+| `backend/veterinary/migrations/__init__.py` | Package marker |
+| `backend/veterinary/migrations/0001_initial.py` | CreateModel for VetAssistanceRequest |
+
+#### Backend — `reports` app (10 files)
+
+| File | Purpose |
+|---|---|
+| `backend/reports/__init__.py` | Package marker |
+| `backend/reports/apps.py` | ReportsConfig |
+| `backend/reports/models.py` | `DiseaseReport` — 5 statuses, 6 species, `is_confirmed_outbreak` (never auto-set, AUTHORITY-only), GPS coordinates gated by consent |
+| `backend/reports/serializers.py` | Consent stripping; area validation (must have area FK or area_name); reporter auto-assign |
+| `backend/reports/views.py` | `DiseaseReportViewSet` — `/review/` (AUTHORITY sets status) and `/confirm_outbreak/` (AUTHORITY only, deliberate human action) |
+| `backend/reports/urls.py` | DefaultRouter — `/api/v1/disease-reports/` |
+| `backend/reports/admin.py` | `is_confirmed_outbreak` read-only for non-superusers in admin |
+| `backend/reports/tests.py` | 5 tests: farmer submits, consent stripping, farmer cannot confirm outbreak, authority reviews, default outbreak=false |
+| `backend/reports/migrations/__init__.py` | Package marker |
+| `backend/reports/migrations/0001_initial.py` | CreateModel for DiseaseReport |
+
+#### Backend — modified files
+
+| File | Change |
+|---|---|
+| `backend/config/settings.py` | Added `'veterinary'` and `'reports'` to `INSTALLED_APPS` |
+| `backend/config/urls.py` | Added `include('veterinary.urls')` and `include('reports.urls')` under `api/v1/` |
+
+#### Flutter — new files (11 files)
+
+| File | Purpose |
+|---|---|
+| `lib/core/services/location_service.dart` | `LocationService.requestAndGetLocation()` — runtime permission request, position fetch, returns `LocationResult` with consent flag |
+| `lib/features/veterinary/models/vet_assistance_request.dart` | `VetAssistanceRequest.fromJson`; `isPending`, `isOpen` getters |
+| `lib/features/veterinary/providers/assistance_provider.dart` | `loadRequests()`, `createRequest()`; ChangeNotifier |
+| `lib/features/veterinary/screens/vet_directory_screen.dart` | Tab view: List (searchable) + OpenStreetMap map with vet markers; bottom sheet on marker tap |
+| `lib/features/veterinary/screens/assistance_request_form_screen.dart` | Create form: farm dropdown, description, area name, optional GPS consent toggle |
+| `lib/features/veterinary/screens/assistance_request_list_screen.dart` | My requests list; colour-coded status chips |
+| `lib/features/reports/models/disease_report.dart` | `DiseaseReport.fromJson`; `statusColor` getter |
+| `lib/features/reports/providers/report_provider.dart` | `loadReports()`, `submitReport()`; ChangeNotifier |
+| `lib/features/reports/screens/disease_report_form_screen.dart` | Structured form: species, date picker, area, observed signs, notes, optional GPS consent; disclaimer banner |
+| `lib/features/reports/screens/disease_report_list_screen.dart` | My reports list; colour-coded status chips |
+
+#### Flutter — modified files (5 files)
+
+| File | Change |
+|---|---|
+| `mobile/livestock_app/pubspec.yaml` | Added `flutter_map ^7.0.2`, `latlong2 ^0.9.1`, `geolocator ^13.0.2`, `permission_handler ^11.3.1` |
+| `mobile/livestock_app/android/app/src/main/AndroidManifest.xml` | Added `ACCESS_FINE_LOCATION` and `ACCESS_COARSE_LOCATION` permissions |
+| `lib/core/api/api_endpoints.dart` | Added `vets`, `assistanceRequests`, `assistanceRequestDetail`, `respondToRequest`, `diseaseReports`, `diseaseReportDetail` |
+| `lib/main.dart` | Added `AssistanceProvider` and `ReportProvider` to `MultiProvider` |
+| `lib/router/app_router.dart` | Added 5 new routes: `/vets`, `/assistance`, `/assistance/new`, `/reports`, `/reports/new` |
+
+---
+
+### Phase 4 acceptance criteria — FINAL STATUS
+
+| Criterion | Status | Evidence |
+|---|---|---|
+| Map provider selected and documented | **PASS** | OpenStreetMap via `flutter_map`; free, no API key; attribution in tile layer |
+| Location permission handling and consent | **PASS** | `LocationService` requests runtime permission; consent flag gated before coords are stored; consent=false strips coords in serializer |
+| Manual area selection when GPS unavailable | **PASS** | `area_name` free-text field on both assistance request and disease report forms |
+| Veterinary profile search | **PASS** | `VetDirectoryScreen` list tab with search filter |
+| Vet locations on map | **PASS** | Map tab shows verified vets with lat/lon as markers; tap → bottom sheet |
+| Assistance requests (create + track status) | **PASS** | `VetAssistanceRequestViewSet`; farmer creates, vet responds via `/respond/`; status tracked through 6 states |
+| Structured disease reports | **PASS** | `DiseaseReportViewSet`; species, date, area, signs, notes; consent-gated coordinates |
+| Access restricted by role | **PASS** | Farmers see only their own reports; AUTHORITY sees all; `/review/` and `/confirm_outbreak/` require AUTHORITY permission |
+| Unconfirmed reports not treated as outbreaks | **PASS** | `is_confirmed_outbreak=False` by default; only set via explicit AUTHORITY `/confirm_outbreak/` action — never automated |
+| `flutter analyze` → no issues | **PASS** | Confirmed after fixing 3 lint issues |
+| Backend tests → all pass | **PASS** | 43/43 (33 original + 10 new) |
+| Flutter tests → all pass | **PASS** | 5/5 |
+
+**Phase 4 is complete. Ready to proceed to Phase 5 (Authority Dashboard and Official Outbreak Announcements).**
+
+---
+
+### Key design decisions
+
+| Decision | Rationale |
+|---|---|
+| OpenStreetMap (no API key) | Free, no billing risk, no key to manage or accidentally commit; appropriate for academic project |
+| `location_consent` boolean stored in DB | Provides an auditable record that the user explicitly gave consent at the time of submission |
+| Serializer strips coordinates when `location_consent=False` | Prevents clients from bypassing consent by sending coords without the flag |
+| `is_confirmed_outbreak` never set automatically | Satisfies the Phase 4 safety rule: unverified reports must not trigger official outbreak status without deliberate human review |
+| `/confirm_outbreak/` as a separate AUTHORITY-only action | Separates the deliberate confirmation step from routine status updates — requires conscious intent |
+| `area_name` free-text fallback alongside Area FK | Farmers may know their area by name but not by a system-assigned ID; supports both |
