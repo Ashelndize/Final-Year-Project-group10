@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../../core/offline/offline_queue_exception.dart';
 import '../../../core/services/location_service.dart';
 import '../../../core/widgets/app_widgets.dart';
 import '../providers/report_provider.dart';
@@ -105,6 +106,11 @@ class _DiseaseReportFormScreenState extends State<DiseaseReportFormScreen> {
       if (mounted) {
         AppSnackBar.show(
             context, 'Report submitted. It is under review by authorities.',);
+        Navigator.pop(context);
+      }
+    } on OfflineQueueException catch (e) {
+      if (mounted) {
+        AppSnackBar.show(context, e.toString());
         Navigator.pop(context);
       }
     } catch (e) {

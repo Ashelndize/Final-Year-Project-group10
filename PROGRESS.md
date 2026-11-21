@@ -1700,3 +1700,166 @@ flutter analyze                    → No issues found!
 | `AssistantInteraction` append-only (`save()` raises if pk set) | Matches POL-AUDIT-01 append-only audit requirement; interaction log cannot be retroactively modified |
 | `SuspiciousActivityFlag` created by rule checks only, not API | Flags are system-generated evidence, not user input; API creation blocked with 405 |
 | AI icon: `Icons.psychology` (teal banner) | Visually distinct from green farm/animal actions; makes the feature easy to find on the dashboard |
+
+---
+
+## Session — 2026-11-21 (Phase 6 Section D: Offline Operation)
+
+### What was accomplished
+
+Full offline operation implementation for the Flutter mobile app. The app now queues write operations (health records, disease reports, vet assistance requests) when the device has no connectivity, and automatically replays the queue when connectivity is restored. An animated status banner informs the user of their connectivity state and sync progress. The offline queue is cleared on logout to prevent one user's queued data from syncing under another user's session.
+
+**Executed by:** Claude Code agent (all files written via Write/Edit tools + Bash for pub get, analyze, and test)
+
+---
+
+### Commands run and results
+
+```
+flutter pub get    → 3 new packages resolved (connectivity_plus 6.1.5, sqflite 2.4.2+1, uuid 4.4.0)
+flutter analyze    → No issues found!
+flutter test       → 11/11 passed (5 existing + 6 new offline tests)
+```
+
+---
+
+### New packages added to pubspec.yaml
+
+| Package | Version resolved | Purpose |
+|---|---|---|
+| `connectivity_plus` | 6.1.5 | Real-time connectivity stream; initial connectivity check |
+| `sqflite` | 2.4.2+1 | On-device SQLite `sync_queue` table for persistent offline queue |
+| `uuid` | 4.4.0 | UUID v4 idempotency keys — prevents duplicate entries in queue |
+
+---
+
+### Architecture
+
+```
+lib/core/offline/
+├── offline_queue_item.dart      Data class: UUID id, endpoint, payload, status, retryCount
+├── offline_queue_exception.dart Exception thrown when a write is queued (UI shows "saved offline")
+├── offline_database.dart        sqflite wrapper: enqueue / pendingItems / updateItem / remove / clearAll
+├── connectivity_service.dart    ChangeNotifier streaming ConnectivityResult changes
+└── sync_service.dart            Processes queue FIFO on reconnect; 4xx=FAILED; 5xx/timeout=retry (max 3)
+
+lib/core/widgets/
+└── offline_banner.dart          Animated banner: amber when offline, green when syncing queued items
+```
+
+---
+
+### Offline queue behaviour
+
+| Scenario | Behaviour |
+|---|---|
+| Device offline when user submits health record | Queued to `sync_queue`; `createRecord()` returns `true`; green success snackbar shown; banner turns amber |
+| Device offline when user submits disease report | Queued; `OfflineQueueException` thrown; form screen catches it and shows "Saved offline" snackbar + pops |
+| Device offline when user submits vet request | Same as disease report |
+| Device reconnects | `SyncService._onConnectivityChange()` triggers `processQueue()`; items replayed FIFO |
+| Sync succeeds for item | Item removed from queue |
+| Server returns 4xx | Item marked `FAILED` permanently (data error — will not retry) |
+| Server returns 5xx / timeout | `retryCount` incremented; retried on next sync; permanently failed after 3 retries |
+| User logs out | `OfflineDatabase.clearAll()` called in `AuthProvider.logout()` — clears all queued items |
+| Server conflict | Server wins — no client-side merge logic; server response replaces any local assumption |
+
+---
+
+### Sensitive data minimisation
+
+Only the minimum data needed to replay the POST is stored in the `sync_queue` table:
+- `endpoint` — the API path
+- `payload` — the form body the user already submitted
+- No tokens, no passwords, no PII beyond what the user typed into the form
+
+The local SQLite database is on-device (Android internal storage) and not accessible to other apps.
+
+---
+
+### Test results — 11/11 PASSED
+
+```
+flutter test test/widget_test.dart
+```
+
+| Test | Group | Result |
+|---|---|---|
+| fromJson parses correctly | User model | PASS |
+| fromJson parses correctly | Farm model | PASS |
+| fromJson parses correctly | Animal model | PASS |
+| displayName falls back to tagNumber when name is empty | Animal model | PASS |
+| starts with loading false and no user | AuthProvider initial state | PASS |
+| toMap / fromMap round-trip preserves all fields | OfflineQueueItem | PASS |
+| fromMap restores failed status and retry count | OfflineQueueItem | PASS |
+| all operation types survive round-trip | OfflineQueueItem | PASS |
+| default message is user-friendly | OfflineQueueException | PASS |
+| custom message is preserved | OfflineQueueException | PASS |
+| is catchable as Exception | OfflineQueueException | PASS |
+
+Ran 11 tests — All tests passed!
+
+---
+
+### Files created this session (6 new files)
+
+| File | Purpose |
+|---|---|
+| `lib/core/offline/offline_queue_item.dart` | Queue item model: `OfflineOperationType` enum, `OfflineQueueStatus` enum, `toMap`/`fromMap` for SQLite persistence |
+| `lib/core/offline/offline_queue_exception.dart` | `OfflineQueueException` — signals "queued, not sent"; UI shows soft-success message |
+| `lib/core/offline/offline_database.dart` | sqflite singleton: `sync_queue` table DDL; `enqueue`, `pendingItems`, `updateItem`, `remove`, `clearAll`, `pendingCount` |
+| `lib/core/offline/connectivity_service.dart` | `ChangeNotifier` monitoring `Connectivity().onConnectivityChanged`; sets `isOnline` bool |
+| `lib/core/offline/sync_service.dart` | `ChangeNotifier` consuming `ConnectivityService`; FIFO replay; 4xx=FAILED; 5xx=retry (max 3); `clearQueue()` for logout |
+| `lib/core/widgets/offline_banner.dart` | `OfflineBanner` widget: amber "You are offline" bar; green "Syncing N records" bar with manual "Sync" tap target |
+
+---
+
+### Files updated this session (8 files)
+
+| File | Change |
+|---|---|
+| `mobile/livestock_app/pubspec.yaml` | Added `connectivity_plus`, `sqflite`, `uuid`; sorted alphabetically |
+| `lib/features/health/providers/health_provider.dart` | `createRecord()` checks connectivity before POST; queues offline via `OfflineDatabase.enqueue()` and returns `true` |
+| `lib/features/reports/providers/report_provider.dart` | `submitReport()` checks connectivity; queues offline; throws `OfflineQueueException` |
+| `lib/features/veterinary/providers/assistance_provider.dart` | `createRequest()` checks connectivity; queues offline; throws `OfflineQueueException` |
+| `lib/features/reports/screens/disease_report_form_screen.dart` | Added `on OfflineQueueException` catch block — shows "Saved offline" snackbar + pops (not an error) |
+| `lib/features/veterinary/screens/assistance_request_form_screen.dart` | Same offline catch block |
+| `lib/features/auth/providers/auth_provider.dart` | `logout()` calls `OfflineDatabase.clearAll()` to clear queue before session ends |
+| `lib/app.dart` | `MaterialApp.router` gains `builder:` parameter wrapping all routes with `OfflineBanner` |
+| `lib/main.dart` | Added `ConnectivityService` and `ChangeNotifierProxyProvider<ConnectivityService, SyncService>` to `MultiProvider` |
+| `test/widget_test.dart` | Added mock for `flutter_secure_storage` channel (prevents async failure in `AuthProvider` test); added 6 new offline tests |
+
+---
+
+### Phase 6 Section D acceptance criteria — FINAL STATUS
+
+| Criterion | Status | Evidence |
+|---|---|---|
+| Connectivity detection (online/offline) | **PASS** | `ConnectivityService` monitors `connectivity_plus` stream; initial state checked on startup |
+| Offline queue persists across app restart | **PASS** | sqflite `sync_queue` table is on-device; survives process kill |
+| Write operations queued when offline | **PASS** | `createRecord`, `submitReport`, `createRequest` all check `Connectivity().checkConnectivity()` before POST |
+| UUID idempotency keys | **PASS** | Each queue item gets a `Uuid().v4()` id; `ConflictAlgorithm.ignore` prevents duplicate inserts |
+| FIFO replay on reconnect | **PASS** | `SyncService.processQueue()` queries `ORDER BY created_at ASC` |
+| 4xx = permanent failure | **PASS** | `ApiException.statusCode >= 400 && < 500` → `status = FAILED` |
+| 5xx/timeout = retry (max 3) | **PASS** | `retryCount` incremented; `>= _maxRetries` → `status = FAILED` |
+| Server-wins conflict resolution | **PASS** | No client-side merge; server response is authoritative |
+| Offline banner (amber when offline) | **PASS** | `OfflineBanner` renders amber `_OfflineBar` when `ConnectivityService.isOnline == false` |
+| Sync progress banner (green when syncing) | **PASS** | `_SyncingBar` shows count + spinner during active sync; "Sync" tap target when idle with pending items |
+| Clear queue on logout | **PASS** | `AuthProvider.logout()` calls `OfflineDatabase.clearAll()` |
+| Sensitive data minimisation | **PASS** | Only endpoint + payload stored; no tokens/passwords in queue |
+| `flutter analyze` → no issues | **PASS** | Confirmed after all trailing-comma and import fixes |
+| `flutter test` → all pass | **PASS** | 11/11 |
+
+**Phase 6 Section D is complete. Phase 6 is now fully complete (AI dataset population and remaining 4 suspicious-activity rule hooks remain deferred by design).**
+
+---
+
+### Key design decisions
+
+| Decision | Rationale |
+|---|---|
+| `ChangeNotifierProxyProvider` for `SyncService` | `SyncService` depends on `ConnectivityService`; proxy provider injects the dependency cleanly at build time |
+| Inline `Connectivity().checkConnectivity()` in providers | Avoids passing `ConnectivityService` into every provider; each write method checks once at call time |
+| `OfflineQueueException` for object-return providers | `submitReport` and `createRequest` return model objects — cannot return null cleanly; exception lets the form screen distinguish "queued" from "error" via typed catch |
+| `health_provider` returns `true` when offline | `createRecord` already returns `bool`; `true` means "accepted" (queued counts as accepted); no API change needed |
+| `MaterialApp.router builder:` for `OfflineBanner` | Global overlay that wraps all routes; no per-screen boilerplate; works with `GoRouter` |
+| `clearAll()` in `logout()` not `SyncService.clearQueue()` | `AuthProvider.logout()` already has the `OfflineDatabase` import; keeping the call there avoids a dependency on `SyncService` in the auth layer |

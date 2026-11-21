@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../../core/offline/offline_queue_exception.dart';
 import '../../../core/services/location_service.dart';
 import '../../../core/widgets/app_widgets.dart';
 import '../providers/assistance_provider.dart';
@@ -85,6 +86,11 @@ class _AssistanceRequestFormScreenState
       await context.read<AssistanceProvider>().createRequest(body);
       if (mounted) {
         AppSnackBar.show(context, 'Assistance request submitted.');
+        Navigator.pop(context);
+      }
+    } on OfflineQueueException catch (e) {
+      if (mounted) {
+        AppSnackBar.show(context, e.toString());
         Navigator.pop(context);
       }
     } catch (e) {

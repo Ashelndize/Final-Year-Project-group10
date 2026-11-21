@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'app.dart';
+import 'core/offline/connectivity_service.dart';
+import 'core/offline/sync_service.dart';
 import 'features/auth/providers/auth_provider.dart';
 import 'features/farms/providers/farm_provider.dart';
 import 'features/animals/providers/animal_provider.dart';
@@ -16,6 +18,11 @@ void main() {
   runApp(
     MultiProvider(
       providers: [
+        ChangeNotifierProvider(create: (_) => ConnectivityService()),
+        ChangeNotifierProxyProvider<ConnectivityService, SyncService>(
+          create: (ctx) => SyncService(ctx.read<ConnectivityService>()),
+          update: (_, conn, prev) => prev ?? SyncService(conn),
+        ),
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => FarmProvider()),
         ChangeNotifierProvider(create: (_) => AnimalProvider()),

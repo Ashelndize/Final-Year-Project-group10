@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../core/api/api_client.dart';
 import '../../../core/api/api_endpoints.dart';
+import '../../../core/offline/offline_database.dart';
 import '../../../core/storage/secure_storage.dart';
 import '../models/user.dart';
 
@@ -125,6 +126,7 @@ class AuthProvider extends ChangeNotifier {
       }
     } catch (_) {}
     await SecureStorage.clearTokens();
+    await OfflineDatabase.clearAll(); // prevent another user syncing previous user's data
     _user = null;
     _status = AuthStatus.unauthenticated;
     notifyListeners();

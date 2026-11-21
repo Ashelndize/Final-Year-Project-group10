@@ -1,6 +1,10 @@
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
+import 'package:uuid/uuid.dart';
 import '../../../core/api/api_client.dart';
 import '../../../core/api/api_endpoints.dart';
+import '../../../core/offline/offline_database.dart';
+import '../../../core/offline/offline_queue_item.dart';
 import '../models/health_record.dart';
 
 class HealthProvider extends ChangeNotifier {
@@ -49,19 +53,37 @@ class HealthProvider extends ChangeNotifier {
     String diagnosis = '',
     String notes = '',
   }) async {
+    final body = <String, dynamic>{
+      'animal': animalId,
+      'record_date': recordDate,
+      'health_status': healthStatus,
+      'symptoms': symptoms,
+      'diagnosis': diagnosis,
+      'notes': notes,
+    };
+    if (weightKg != null && weightKg.isNotEmpty) body['weight_kg'] = weightKg;
+    if (temperatureC != null && temperatureC.isNotEmpty) {
+      body['temperature_c'] = temperatureC;
+    }
+
+    // Offline check — queue if no connection.
+    final results = await Connectivity().checkConnectivity();
+    final isOnline = results.any((r) =>
+        r == ConnectivityResult.mobile ||
+        r == ConnectivityResult.wifi ||
+        r == ConnectivityResult.ethernet,);
+    if (!isOnline) {
+      await OfflineDatabase.enqueue(OfflineQueueItem(
+        id: const Uuid().v4(),
+        operationType: OfflineOperationType.healthRecord,
+        endpoint: ApiEndpoints.healthRecords,
+        payload: body,
+        createdAt: DateTime.now(),
+      ),);
+      return true; // treated as success; banner indicates pending sync
+    }
+
     try {
-      final body = <String, dynamic>{
-        'animal': animalId,
-        'record_date': recordDate,
-        'health_status': healthStatus,
-        'symptoms': symptoms,
-        'diagnosis': diagnosis,
-        'notes': notes,
-      };
-      if (weightKg != null && weightKg.isNotEmpty) body['weight_kg'] = weightKg;
-      if (temperatureC != null && temperatureC.isNotEmpty) {
-        body['temperature_c'] = temperatureC;
-      }
       final data = await ApiClient.post(ApiEndpoints.healthRecords, body);
       _records.insert(0, HealthRecord.fromJson(data));
       notifyListeners();
