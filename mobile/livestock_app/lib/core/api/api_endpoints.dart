@@ -48,4 +48,7 @@ class ApiEndpoints {
   // Official announcements
   static const String announcements = '$baseUrl/announcements/';
   static String announcementDetail(int id) => '$baseUrl/announcements/$id/';
+
+  // AI Health Assistant
+  static const String assistantAsk = '$baseUrl/assistant/ask/';
 }

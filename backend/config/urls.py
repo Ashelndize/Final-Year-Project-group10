@@ -18,6 +18,8 @@ urlpatterns = [
     path('api/v1/', include('veterinary.urls')),
     path('api/v1/', include('reports.urls')),
     path('api/v1/', include('announcements.urls')),
+    path('api/v1/', include('assistant.urls')),
+    path('api/v1/', include('suspicious_activity.urls')),
     path('authority/', include('dashboard.urls', namespace='dashboard')),
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
     path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),

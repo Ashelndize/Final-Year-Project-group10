@@ -20,6 +20,7 @@ import '../features/reports/screens/disease_report_form_screen.dart';
 import '../features/reports/screens/disease_report_list_screen.dart';
 import '../features/announcements/screens/announcement_list_screen.dart';
 import '../features/announcements/screens/announcement_detail_screen.dart';
+import '../features/assistant/screens/assistant_screen.dart';
 
 GoRouter createRouter(AuthProvider authProvider) {
   return GoRouter(
@@ -115,6 +116,11 @@ GoRouter createRouter(AuthProvider authProvider) {
         builder: (_, state) => AnnouncementDetailScreen(
           announcementId: int.parse(state.pathParameters['id']!),
         ),
+      ),
+      // Phase 6 — AI Health Assistant
+      GoRoute(
+        path: '/assistant',
+        builder: (_, __) => const AssistantScreen(),
       ),
     ],
   );

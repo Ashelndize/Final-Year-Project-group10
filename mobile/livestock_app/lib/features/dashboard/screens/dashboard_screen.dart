@@ -143,6 +143,53 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
               ],
             ),
+            const SizedBox(height: 16),
+            // AI Health Assistant banner
+            InkWell(
+              onTap: () => context.go('/assistant'),
+              borderRadius: BorderRadius.circular(12),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Colors.teal.shade600, Colors.teal.shade400],
+                    begin: Alignment.centerLeft,
+                    end: Alignment.centerRight,
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Row(
+                  children: [
+                    Icon(Icons.psychology, color: Colors.white, size: 32),
+                    SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'AI Health Assistant',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 15,
+                            ),
+                          ),
+                          Text(
+                            'General livestock health information',
+                            style: TextStyle(
+                              color: Colors.white70,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Icon(Icons.chevron_right, color: Colors.white),
+                  ],
+                ),
+              ),
+            ),
             const SizedBox(height: 24),
             const Text(
               'Quick Actions',
@@ -163,6 +210,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
               icon: Icons.list_alt,
               label: 'My Farms',
               onTap: () => context.go('/farms'),
+            ),
+            _QuickAction(
+              icon: Icons.psychology,
+              label: 'AI Health Assistant',
+              onTap: () => context.go('/assistant'),
             ),
           ],
         ),

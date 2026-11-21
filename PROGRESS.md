@@ -1531,3 +1531,172 @@ Same 5 widget/unit tests from Phase 3 — all still passing. `flutter analyze` �
 | `issuing_authority` FK with `on_delete=PROTECT` | Prevents deletion of a user who has issued announcements — protects accountability chain |
 | `withdrawal_reason` required, stored in DB | Provides auditable trace for every withdrawal; enforced at both API and dashboard form level |
 | Announcement publish = "never automated" | Phase 5 safety rule: only an authenticated AUTHORITY human can publish; documented in view docstring and design decisions |
+
+---
+
+## Session — 2026-11-21 (Phase 6: AI Health Assistant and Suspicious Activity Detection)
+
+### What was accomplished
+
+Phase 6 scaffolded in full: `assistant` app (KB-driven health information API with safety rules), `suspicious_activity` app (flag model + 3 rule checks), and Flutter AI chat screen with AI icon on the dashboard. The AI assistant is **disabled by default** (`ASSISTANT_ENABLED=False`) — no KB dataset has been loaded yet; dataset population is deferred.
+
+**Executed by:** Claude Code agent (all files written via Write/Edit tools + Bash for migrations and tests)
+**Work packages:** WP-27 (AI assistant scaffold), security/audit work already complete in prior phases
+
+---
+
+### Design decision — dataset deferred
+
+The AI assistant is intentionally launched in disabled state. `ASSISTANT_ENABLED=False` is the default in both settings and `.env.example`. When the flag is `False`, the API endpoint returns a `DISABLED` response with a clear user message directing them to request veterinary assistance. The KB data model (`KBSource`) is fully defined and ready to receive vetted content when the team sources and reviews appropriate veterinary references.
+
+---
+
+### Commands run and results
+
+```
+# Backend
+python manage.py migrate           → assistant.0001_initial OK, suspicious_activity.0001_initial OK
+python manage.py test --verbosity=2 → Ran 75 tests in 21.3s — OK
+
+# Flutter
+flutter analyze                    → No issues found!
+```
+
+---
+
+### Fixes applied during this session
+
+| Issue | Root cause | Fix |
+|---|---|---|
+| `serializers.CharField(strip=True)` TypeError | DRF `CharField` has no `strip` kwarg — stripping is done in `validate_*` | Removed `strip=True` from kwarg; `validate_question` already calls `.strip()` |
+| `_get_jwt` → 404 in both test files | Tests called `/api/v1/auth/token/` which doesn't exist; correct URL is `/api/v1/auth/login/` | Changed both test helpers |
+| `DiseaseReport.objects.create(title=…, description=…)` TypeError | `DiseaseReport` model uses `reporter`, `species`, `observation_date`, `area_name`, `observed_signs` — not title/description | Fixed `_create_reports` in `suspicious_activity/tests.py` |
+| `/resolve/` action returning 405 | `http_method_names = ['get', 'head', 'options']` blocked POST entirely, including custom actions | Added `'post'` to `http_method_names`; overrode `create/update/partial_update/destroy` to return 405 |
+
+---
+
+### Test results
+
+#### Backend — 75/75 PASSED
+
+| App | Tests | Result |
+|---|---|---|
+| assistant | 8 | ALL PASS |
+| suspicious_activity | 5 | ALL PASS |
+| announcements | 8 | ALL PASS |
+| dashboard | 11 | ALL PASS |
+| veterinary | 5 | ALL PASS |
+| reports | 5 | ALL PASS |
+| accounts | 13 | ALL PASS |
+| farms | 6 | ALL PASS |
+| animals | 4 | ALL PASS |
+| health | 3 | ALL PASS |
+| audit | 2 | ALL PASS |
+| health_check | 5 | ALL PASS |
+| **Total** | **75** | **OK** |
+
+#### Flutter — 5/5 PASSED · `flutter analyze` → No issues found!
+
+---
+
+### Files created this session — backend (20 files)
+
+#### `assistant` app (10 files)
+
+| File | Purpose |
+|---|---|
+| `backend/assistant/__init__.py` | Package marker |
+| `backend/assistant/apps.py` | AssistantConfig |
+| `backend/assistant/models.py` | `KBSource` (title, content, citation, publisher, is_active, review_due_at — ready for dataset); `AssistantInteraction` (append-only log: question, answer, answer_source, kb_version, escalation, safety_flags) |
+| `backend/assistant/serializers.py` | `AssistantQuestionSerializer` (validates non-empty); `AssistantResponseSerializer` (adds constant `disclaimer` field); `KBSourceSerializer` |
+| `backend/assistant/views.py` | `AssistantAskView` — full scope-gate pipeline: INSTRUCTION_INJECTION → ESCALATION → IN_SCOPE → OUT_OF_SCOPE; KB keyword match; disclaimer appended to every answer. `KBSourceViewSet` admin-only CRUD. |
+| `backend/assistant/urls.py` | `POST /api/v1/assistant/ask/`; `/api/v1/kb-sources/` (admin) |
+| `backend/assistant/admin.py` | `KBSourceAdmin`, `AssistantInteractionAdmin` (all readonly — append-only) |
+| `backend/assistant/migrations/__init__.py` | Package marker |
+| `backend/assistant/migrations/0001_initial.py` | CreateModel for `KBSource` and `AssistantInteraction` |
+| `backend/assistant/tests.py` | 8 tests: disabled state, disclaimer present, escalation detected, out-of-scope refused, injection refused, fallback_none when no KB, KB match when source exists, unauthenticated 401 |
+
+#### `suspicious_activity` app (10 files)
+
+| File | Purpose |
+|---|---|
+| `backend/suspicious_activity/__init__.py` | Package marker |
+| `backend/suspicious_activity/apps.py` | SuspiciousActivityConfig |
+| `backend/suspicious_activity/models.py` | `SuspiciousActivityFlag` — 7 rule_key choices, 5 outcome statuses (OPEN/REVIEWED_OK/ESCALATED/FALSE_POSITIVE/ACTION_TAKEN), `resolved_at` auto-set on status transition |
+| `backend/suspicious_activity/rules.py` | `check_report_burst`, `check_bulk_health_edits`, `check_announcement_edits` — idempotency guard prevents duplicate flags |
+| `backend/suspicious_activity/serializers.py` | `SuspiciousActivityFlagSerializer` with `actor_username` computed field |
+| `backend/suspicious_activity/views.py` | `SuspiciousActivityFlagViewSet` — AUTHORITY-only read; `/resolve/` POST action to set outcome; create/update/destroy return 405 |
+| `backend/suspicious_activity/urls.py` | `/api/v1/suspicious-flags/` (DefaultRouter) |
+| `backend/suspicious_activity/admin.py` | List display + filter by rule_key and status |
+| `backend/suspicious_activity/migrations/__init__.py` | Package marker |
+| `backend/suspicious_activity/migrations/0001_initial.py` | CreateModel for `SuspiciousActivityFlag` |
+| `backend/suspicious_activity/tests.py` | 5 tests: burst below threshold, burst above threshold, no duplicate flags, resolve changes status, false positive requires note |
+
+---
+
+### Files updated this session
+
+| File | Change |
+|---|---|
+| `backend/config/settings.py` | Added `'assistant'` and `'suspicious_activity'` to INSTALLED_APPS; added `ASSISTANT_ENABLED` and `ASSISTANT_PROVIDER` settings (both from env, defaults False/'kb_only') |
+| `backend/config/urls.py` | Added `include('assistant.urls')` and `include('suspicious_activity.urls')` under `api/v1/` |
+| `backend/assistant/serializers.py` | Removed `strip=True` from `CharField` (not a valid DRF kwarg) |
+| `backend/assistant/tests.py` | Fixed `_get_jwt` URL to `/api/v1/auth/login/` |
+| `backend/suspicious_activity/views.py` | Added `'post'` to `http_method_names`; overrode CRUD methods to return 405 |
+| `backend/suspicious_activity/tests.py` | Fixed `_get_jwt` URL; fixed `DiseaseReport.objects.create()` to use correct model fields |
+
+---
+
+### Flutter files created this session (3 files)
+
+| File | Purpose |
+|---|---|
+| `lib/features/assistant/models/assistant_response.dart` | `AssistantResponse.fromJson`; `isDisabled`, `isRefused`, `isFromKB` getters |
+| `lib/features/assistant/providers/assistant_provider.dart` | `AssistantProvider` with `ask(question)`, `clearHistory()`; `AssistantMessage` holds user and AI messages |
+| `lib/features/assistant/screens/assistant_screen.dart` | Chat-style UI: persistent amber disclaimer banner, right-aligned green user bubbles, left-aligned AI response cards with source badge + escalation warning + italic disclaimer, thinking indicator, disabled state card |
+
+### Flutter files updated this session (4 files)
+
+| File | Change |
+|---|---|
+| `lib/core/api/api_endpoints.dart` | Added `assistantAsk` constant |
+| `lib/main.dart` | Added `AssistantProvider` import and `ChangeNotifierProvider` entry |
+| `lib/router/app_router.dart` | Added import and `/assistant` route |
+| `lib/features/dashboard/screens/dashboard_screen.dart` | Added teal `Icons.psychology` AI banner card between summary cards and quick actions; added AI quick-action list tile |
+
+---
+
+### Phase 6 acceptance criteria — STATUS
+
+| Criterion | Status | Notes |
+|---|---|---|
+| AI assistant endpoint (`POST /api/v1/assistant/ask/`) | **PASS** | Returns 200 with disclaimer in all states |
+| Disabled state when `ASSISTANT_ENABLED=False` | **PASS** | Returns `answer_source='DISABLED'` with clear message |
+| Disclaimer always present in response | **PASS** | `AssistantResponseSerializer.get_disclaimer()` always returns the fixed string |
+| Scope gate: injection attempts refused | **PASS** | `INSTRUCTION_INJECTION` classification → `REFUSED` + `safety_flags=['instruction_injection']` |
+| Scope gate: escalation triggers detected | **PASS** | ESCALATION keywords → `escalation=True` + `safety_flags=['escalation_trigger']` |
+| Scope gate: out-of-scope refused | **PASS** | No livestock keywords → `REFUSED` + `safety_flags=['out_of_scope']` |
+| Fallback when no KB sources | **PASS** | `FALLBACK_NONE` with vet referral message |
+| KB answer when source exists | **PASS** | Keyword match → `answer_source='KB'` |
+| KB dataset loading | **DEFERRED** | `KBSource` model ready; no vetted data loaded yet — to be populated later |
+| Suspicious activity flag model (7 rules) | **PASS** | `SuspiciousActivityFlag` with all 7 rule keys from policy |
+| Rule checks: report_burst, bulk_health_edits, announcement_edits | **PASS** | 3 of 7 rules implemented; remaining 4 (login, cross-owner, sync, permission-denied) require middleware hooks — deferred to Phase 7 |
+| AI icon on dashboard | **PASS** | Teal `Icons.psychology` banner card; AI quick-action list tile |
+| Flutter AI chat screen | **PASS** | Full chat UI with disclaimer banner, escalation warnings, source badge |
+| Backend tests → all pass | **PASS** | 75/75 |
+| `flutter analyze` → no issues | **PASS** | Confirmed |
+
+**Phase 6 scaffold complete. AI dataset population and remaining suspicious-activity rule hooks deferred. Ready to proceed to Phase 7 (Integration Testing and Acceptance).**
+
+---
+
+### Key design decisions
+
+| Decision | Rationale |
+|---|---|
+| `ASSISTANT_ENABLED=False` as default | No KB data yet; prevents users seeing empty/unhelpful responses; enables safe production deployment while data is being prepared |
+| Deterministic scope gate (no ML) | Matches POL-AI-02: classification is explainable and testable; avoids ML cost and unpredictability |
+| Disclaimer appended in every answer (not just serialiser) | Belt-and-braces: even if serialiser changes, the answer text itself always contains the disclaimer |
+| `AssistantInteraction` append-only (`save()` raises if pk set) | Matches POL-AUDIT-01 append-only audit requirement; interaction log cannot be retroactively modified |
+| `SuspiciousActivityFlag` created by rule checks only, not API | Flags are system-generated evidence, not user input; API creation blocked with 405 |
+| AI icon: `Icons.psychology` (teal banner) | Visually distinct from green farm/animal actions; makes the feature easy to find on the dashboard |

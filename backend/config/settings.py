@@ -64,7 +64,16 @@ INSTALLED_APPS = [
     'reports',
     'announcements',
     'dashboard',
+    'assistant',
+    'suspicious_activity',
 ]
+
+# ---------------------------------------------------------------------------
+# AI Health Assistant
+# ---------------------------------------------------------------------------
+
+ASSISTANT_ENABLED = config('ASSISTANT_ENABLED', default=False, cast=bool)
+ASSISTANT_PROVIDER = config('ASSISTANT_PROVIDER', default='kb_only')
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
