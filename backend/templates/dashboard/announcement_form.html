@@ -1,0 +1,35 @@
+{% extends "dashboard/base.html" %}
+{% block title %}{{ action }} Announcement{% endblock %}
+{% block content %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url 'dashboard:announcement_list' %}">Announcements</a></li>
+    <li class="breadcrumb-item active">{{ action }}</li>
+  </ol>
+</nav>
+<div class="card" style="max-width:720px">
+  <div class="card-header fw-semibold">{{ action }} Announcement</div>
+  <div class="card-body">
+    <div class="alert alert-info small">
+      <strong>Important:</strong> This announcement will be saved as a <strong>Draft</strong>.
+      You must explicitly publish it after review. Official announcements must only be published
+      by an authorised human reviewer — never automatically.
+    </div>
+    <form method="post">
+      {% csrf_token %}
+      {% for field in form %}
+        <div class="mb-3">
+          <label class="form-label">{{ field.label }}{% if field.field.required %} *{% endif %}</label>
+          {{ field }}
+          {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
+          {% if field.errors %}<div class="text-danger small">{{ field.errors }}</div>{% endif %}
+        </div>
+      {% endfor %}
+      <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-success">Save Draft</button>
+        <a href="{% url 'dashboard:announcement_list' %}" class="btn btn-outline-secondary">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

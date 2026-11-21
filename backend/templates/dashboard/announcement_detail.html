@@ -1,0 +1,84 @@
+{% extends "dashboard/base.html" %}
+{% block title %}{{ announcement.title }}{% endblock %}
+{% block content %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url 'dashboard:announcement_list' %}">Announcements</a></li>
+    <li class="breadcrumb-item active">#{{ announcement.pk }}</li>
+  </ol>
+</nav>
+
+<div class="row g-3">
+  <div class="col-md-8">
+    <div class="card mb-3">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span class="fw-semibold">{{ announcement.title }}</span>
+        <span class="badge {% if announcement.status == 'PUBLISHED' %}bg-success{% elif announcement.status == 'DRAFT' %}bg-secondary{% elif announcement.status == 'WITHDRAWN' %}bg-dark{% else %}bg-warning text-dark{% endif %}">
+          {{ announcement.get_status_display }}
+        </span>
+      </div>
+      <div class="card-body">
+        <dl class="row mb-0">
+          <dt class="col-sm-4">Type</dt><dd class="col-sm-8">{{ announcement.get_announcement_type_display }}</dd>
+          <dt class="col-sm-4">Issuing Authority</dt><dd class="col-sm-8">{{ announcement.issuing_authority.username }}</dd>
+          <dt class="col-sm-4">Affected Area</dt><dd class="col-sm-8">{{ announcement.affected_area_name|default:"—" }}</dd>
+          <dt class="col-sm-4">Affected Species</dt><dd class="col-sm-8">{{ announcement.affected_species|default:"All" }}</dd>
+          <dt class="col-sm-4">Published</dt><dd class="col-sm-8">{% if announcement.published_at %}{{ announcement.published_at|date:"d M Y H:i" }}{% else %}—{% endif %}</dd>
+          <dt class="col-sm-4">Expires</dt><dd class="col-sm-8">{% if announcement.expires_at %}{{ announcement.expires_at|date:"d M Y H:i" }}{% else %}No expiry set{% endif %}</dd>
+          {% if announcement.status == 'WITHDRAWN' %}
+            <dt class="col-sm-4">Withdrawn</dt><dd class="col-sm-8">{{ announcement.withdrawn_at|date:"d M Y H:i" }}</dd>
+            <dt class="col-sm-4">Reason</dt><dd class="col-sm-8">{{ announcement.withdrawal_reason }}</dd>
+          {% endif %}
+        </dl>
+      </div>
+    </div>
+    <div class="card mb-3">
+      <div class="card-header fw-semibold">Content</div>
+      <div class="card-body">{{ announcement.content|linebreaks }}</div>
+    </div>
+    {% if announcement.prevention_guidance %}
+      <div class="card mb-3">
+        <div class="card-header fw-semibold">Prevention Guidance</div>
+        <div class="card-body">{{ announcement.prevention_guidance|linebreaks }}</div>
+      </div>
+    {% endif %}
+  </div>
+
+  <div class="col-md-4">
+    <div class="card mb-3">
+      <div class="card-header fw-semibold">Actions</div>
+      <div class="card-body d-grid gap-2">
+        {% if announcement.status == 'DRAFT' %}
+          <a href="{% url 'dashboard:announcement_edit' announcement.pk %}" class="btn btn-outline-secondary">
+            <i class="bi bi-pencil me-1"></i>Edit Draft
+          </a>
+          <form method="post" action="{% url 'dashboard:announcement_publish' announcement.pk %}"
+                onsubmit="return confirm('Publish this announcement to all users?')">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-success w-100">
+              <i class="bi bi-send me-1"></i>Publish
+            </button>
+          </form>
+        {% elif announcement.status == 'PUBLISHED' %}
+          <a href="{% url 'dashboard:announcement_withdraw' announcement.pk %}" class="btn btn-danger">
+            <i class="bi bi-x-circle me-1"></i>Withdraw
+          </a>
+        {% endif %}
+      </div>
+    </div>
+    {% if audit_events %}
+      <div class="card">
+        <div class="card-header fw-semibold">Audit Trail</div>
+        <div class="list-group list-group-flush">
+          {% for e in audit_events %}
+            <div class="list-group-item small">
+              <div class="text-muted">{{ e.timestamp|date:"d M Y H:i" }}</div>
+              <div>{{ e.description }}</div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

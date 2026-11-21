@@ -18,6 +18,8 @@ import '../features/veterinary/screens/assistance_request_form_screen.dart';
 import '../features/veterinary/screens/assistance_request_list_screen.dart';
 import '../features/reports/screens/disease_report_form_screen.dart';
 import '../features/reports/screens/disease_report_list_screen.dart';
+import '../features/announcements/screens/announcement_list_screen.dart';
+import '../features/announcements/screens/announcement_detail_screen.dart';
 
 GoRouter createRouter(AuthProvider authProvider) {
   return GoRouter(
@@ -102,6 +104,17 @@ GoRouter createRouter(AuthProvider authProvider) {
       GoRoute(
         path: '/reports/new',
         builder: (_, __) => const DiseaseReportFormScreen(),
+      ),
+      // Phase 5 — Official announcements
+      GoRoute(
+        path: '/announcements',
+        builder: (_, __) => const AnnouncementListScreen(),
+      ),
+      GoRoute(
+        path: '/announcements/:id',
+        builder: (_, state) => AnnouncementDetailScreen(
+          announcementId: int.parse(state.pathParameters['id']!),
+        ),
       ),
     ],
   );

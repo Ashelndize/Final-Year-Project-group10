@@ -1,0 +1,78 @@
+{% extends "dashboard/base.html" %}
+{% block title %}Report #{{ report.pk }}{% endblock %}
+{% block content %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url 'dashboard:report_queue' %}">Disease Reports</a></li>
+    <li class="breadcrumb-item active">Report #{{ report.pk }}</li>
+  </ol>
+</nav>
+
+<div class="row g-3">
+  <div class="col-md-7">
+    <div class="card mb-3">
+      <div class="card-header fw-semibold">Report Details</div>
+      <div class="card-body">
+        <dl class="row mb-0">
+          <dt class="col-sm-4">ID</dt><dd class="col-sm-8">#{{ report.pk }}</dd>
+          <dt class="col-sm-4">Species</dt><dd class="col-sm-8">{{ report.get_species_display }}</dd>
+          <dt class="col-sm-4">Observation Date</dt><dd class="col-sm-8">{{ report.observation_date }}</dd>
+          <dt class="col-sm-4">Area</dt><dd class="col-sm-8">{{ report.area_name }}{% if report.area %} ({{ report.area.name }}){% endif %}</dd>
+          <dt class="col-sm-4">Reporter</dt><dd class="col-sm-8">{{ report.reporter.username }}</dd>
+          <dt class="col-sm-4">Status</dt><dd class="col-sm-8"><span class="badge bg-secondary">{{ report.get_status_display }}</span></dd>
+          <dt class="col-sm-4">Outbreak confirmed</dt><dd class="col-sm-8">{% if report.is_confirmed_outbreak %}<span class="badge bg-danger">YES</span>{% else %}<span class="badge bg-secondary">No</span>{% endif %}</dd>
+          <dt class="col-sm-4">Location consent</dt><dd class="col-sm-8">{% if report.location_consent %}Yes{% else %}Not given{% endif %}</dd>
+          {% if report.location_consent and report.report_latitude %}
+            <dt class="col-sm-4">Coordinates</dt><dd class="col-sm-8">{{ report.report_latitude }}, {{ report.report_longitude }}</dd>
+          {% endif %}
+          <dt class="col-sm-4">Submitted</dt><dd class="col-sm-8">{{ report.created_at|date:"d M Y H:i" }}</dd>
+        </dl>
+      </div>
+    </div>
+    <div class="card mb-3">
+      <div class="card-header fw-semibold">Observed Signs</div>
+      <div class="card-body">{{ report.observed_signs }}</div>
+    </div>
+    {% if report.notes %}
+      <div class="card mb-3">
+        <div class="card-header fw-semibold">Additional Notes</div>
+        <div class="card-body">{{ report.notes }}</div>
+      </div>
+    {% endif %}
+  </div>
+
+  <div class="col-md-5">
+    <div class="card mb-3">
+      <div class="card-header fw-semibold">Review Action</div>
+      <div class="card-body">
+        <form method="post">
+          {% csrf_token %}
+          <div class="mb-3">
+            <label class="form-label">{{ form.new_status.label }}</label>
+            {{ form.new_status }}
+            {% if form.new_status.errors %}<div class="text-danger small">{{ form.new_status.errors }}</div>{% endif %}
+          </div>
+          <div class="mb-3">
+            <label class="form-label">{{ form.notes.label }}</label>
+            {{ form.notes }}
+          </div>
+          <button type="submit" class="btn btn-success w-100">Update Status</button>
+        </form>
+      </div>
+    </div>
+    {% if audit_events %}
+      <div class="card">
+        <div class="card-header fw-semibold">Audit Trail</div>
+        <div class="list-group list-group-flush">
+          {% for e in audit_events %}
+            <div class="list-group-item small">
+              <div class="text-muted">{{ e.timestamp|date:"d M Y H:i" }} — {{ e.actor.username|default:"system" }}</div>
+              <div>{{ e.description }}</div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

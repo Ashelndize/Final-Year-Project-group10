@@ -1,0 +1,98 @@
+{% extends "dashboard/base.html" %}
+{% block title %}Overview{% endblock %}
+{% block content %}
+<h4 class="mb-4 fw-bold">Overview</h4>
+<div class="row g-3 mb-4">
+  <div class="col-sm-4">
+    <div class="card border-warning">
+      <div class="card-body">
+        <div class="d-flex align-items-center">
+          <i class="bi bi-exclamation-triangle-fill text-warning fs-2 me-3"></i>
+          <div>
+            <div class="fs-2 fw-bold">{{ pending_reports }}</div>
+            <div class="text-muted small">Pending Reports</div>
+          </div>
+        </div>
+        <a href="{% url 'dashboard:report_queue' %}?status=SUBMITTED" class="stretched-link"></a>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-4">
+    <div class="card border-info">
+      <div class="card-body">
+        <div class="d-flex align-items-center">
+          <i class="bi bi-search text-info fs-2 me-3"></i>
+          <div>
+            <div class="fs-2 fw-bold">{{ under_review }}</div>
+            <div class="text-muted small">Under Review</div>
+          </div>
+        </div>
+        <a href="{% url 'dashboard:report_queue' %}?status=UNDER_REVIEW" class="stretched-link"></a>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-4">
+    <div class="card border-success">
+      <div class="card-body">
+        <div class="d-flex align-items-center">
+          <i class="bi bi-megaphone-fill text-success fs-2 me-3"></i>
+          <div>
+            <div class="fs-2 fw-bold">{{ published_announcements }}</div>
+            <div class="text-muted small">Live Announcements</div>
+          </div>
+        </div>
+        <a href="{% url 'dashboard:announcement_list' %}" class="stretched-link"></a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span class="fw-semibold">Recent Reports</span>
+        <a href="{% url 'dashboard:report_queue' %}" class="btn btn-sm btn-outline-secondary">View all</a>
+      </div>
+      <div class="list-group list-group-flush">
+        {% for r in recent_reports %}
+          <a href="{% url 'dashboard:report_detail' r.pk %}" class="list-group-item list-group-item-action">
+            <div class="d-flex justify-content-between">
+              <span class="fw-semibold">{{ r.get_species_display }} — #{{ r.pk }}</span>
+              <span class="badge {% if r.status == 'SUBMITTED' %}bg-warning text-dark{% elif r.status == 'UNDER_REVIEW' %}bg-info{% else %}bg-secondary{% endif %}">
+                {{ r.get_status_display }}
+              </span>
+            </div>
+            <div class="text-muted small">{{ r.area_name }} · {{ r.created_at|date:"d M Y" }}</div>
+          </a>
+        {% empty %}
+          <div class="list-group-item text-muted">No reports yet.</div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span class="fw-semibold">Recent Announcements</span>
+        <a href="{% url 'dashboard:announcement_create' %}" class="btn btn-sm btn-success">+ New</a>
+      </div>
+      <div class="list-group list-group-flush">
+        {% for a in recent_announcements %}
+          <a href="{% url 'dashboard:announcement_detail' a.pk %}" class="list-group-item list-group-item-action">
+            <div class="d-flex justify-content-between">
+              <span class="fw-semibold">{{ a.title }}</span>
+              <span class="badge {% if a.status == 'PUBLISHED' %}bg-success{% elif a.status == 'DRAFT' %}bg-secondary{% else %}bg-dark{% endif %}">
+                {{ a.get_status_display }}
+              </span>
+            </div>
+            <div class="text-muted small">{{ a.get_announcement_type_display }} · {{ a.created_at|date:"d M Y" }}</div>
+          </a>
+        {% empty %}
+          <div class="list-group-item text-muted">No announcements yet.</div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

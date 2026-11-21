@@ -1,0 +1,69 @@
+{% extends "dashboard/base.html" %}
+{% block title %}Disease Reports{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h4 class="fw-bold mb-0">Disease Reports</h4>
+</div>
+
+<form method="get" class="row g-2 mb-3">
+  <div class="col-auto">
+    <select name="status" class="form-select form-select-sm">
+      <option value="">All statuses</option>
+      {% for val, label in status_choices %}
+        <option value="{{ val }}" {% if status_filter == val %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="col-auto">
+    <select name="species" class="form-select form-select-sm">
+      <option value="">All species</option>
+      {% for val, label in species_choices %}
+        <option value="{{ val }}" {% if species_filter == val %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="col-auto">
+    <button type="submit" class="btn btn-sm btn-outline-secondary">Filter</button>
+    <a href="{% url 'dashboard:report_queue' %}" class="btn btn-sm btn-link">Clear</a>
+  </div>
+</form>
+
+<div class="card">
+  <div class="table-responsive">
+    <table class="table table-hover mb-0">
+      <thead>
+        <tr>
+          <th>#</th><th>Species</th><th>Area</th><th>Reporter</th>
+          <th>Observed</th><th>Status</th><th>Submitted</th><th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in reports %}
+          <tr>
+            <td>{{ r.pk }}</td>
+            <td>{{ r.get_species_display }}</td>
+            <td>{{ r.area_name }}</td>
+            <td>{{ r.reporter.username }}</td>
+            <td>{{ r.observation_date }}</td>
+            <td>
+              <span class="badge status-badge
+                {% if r.status == 'SUBMITTED' %}bg-warning text-dark
+                {% elif r.status == 'UNDER_REVIEW' %}bg-info text-dark
+                {% elif r.status == 'CLARIFICATION_REQUESTED' %}bg-primary
+                {% elif r.status == 'ACCEPTED_FOR_ASSESSMENT' %}bg-purple
+                {% elif r.status == 'REJECTED' %}bg-danger
+                {% else %}bg-secondary{% endif %}">
+                {{ r.get_status_display }}
+              </span>
+            </td>
+            <td>{{ r.created_at|date:"d M Y" }}</td>
+            <td><a href="{% url 'dashboard:report_detail' r.pk %}" class="btn btn-sm btn-outline-secondary">Review</a></td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="8" class="text-center text-muted py-4">No reports match the filter.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

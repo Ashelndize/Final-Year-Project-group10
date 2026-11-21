@@ -5,6 +5,7 @@ from django.conf import settings
 class DiseaseReport(models.Model):
     STATUS_SUBMITTED = 'SUBMITTED'
     STATUS_UNDER_REVIEW = 'UNDER_REVIEW'
+    STATUS_CLARIFICATION = 'CLARIFICATION_REQUESTED'
     STATUS_ACCEPTED = 'ACCEPTED_FOR_ASSESSMENT'
     STATUS_REJECTED = 'REJECTED'
     STATUS_CLOSED = 'CLOSED'
@@ -12,6 +13,7 @@ class DiseaseReport(models.Model):
     STATUS_CHOICES = [
         (STATUS_SUBMITTED, 'Submitted'),
         (STATUS_UNDER_REVIEW, 'Under Review'),
+        (STATUS_CLARIFICATION, 'Clarification Requested'),
         (STATUS_ACCEPTED, 'Accepted for Assessment'),
         (STATUS_REJECTED, 'Rejected'),
         (STATUS_CLOSED, 'Closed'),

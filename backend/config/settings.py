@@ -62,6 +62,8 @@ INSTALLED_APPS = [
     'audit',
     'veterinary',
     'reports',
+    'announcements',
+    'dashboard',
 ]
 
 MIDDLEWARE = [

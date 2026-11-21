@@ -8,11 +8,6 @@ from audit.models import AuditEvent
 
 
 class DiseaseReportViewSet(viewsets.ModelViewSet):
-    """
-    Farmers and vets can submit disease reports.
-    AUTHORITY users can review and update status.
-    is_confirmed_outbreak can only be set by AUTHORITY via /confirm_outbreak/ action.
-    """
     serializer_class = DiseaseReportSerializer
     permission_classes = [permissions.IsAuthenticated]
     filterset_fields = ['status', 'species']
@@ -45,7 +40,6 @@ class DiseaseReportViewSet(viewsets.ModelViewSet):
         )
 
     def update(self, request, *args, **kwargs):
-        # Reporters can only edit their own SUBMITTED reports
         instance = self.get_object()
         if request.user.role not in ('ADMIN', 'AUTHORITY'):
             if instance.reporter != request.user:
@@ -59,11 +53,12 @@ class DiseaseReportViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['post'], permission_classes=[IsAuthority])
     def review(self, request, pk=None):
-        """AUTHORITY sets report status (but NOT is_confirmed_outbreak here)."""
+        """AUTHORITY sets report status."""
         instance = self.get_object()
         new_status = request.data.get('status')
         allowed_statuses = [
             DiseaseReport.STATUS_UNDER_REVIEW,
+            DiseaseReport.STATUS_CLARIFICATION,
             DiseaseReport.STATUS_ACCEPTED,
             DiseaseReport.STATUS_REJECTED,
             DiseaseReport.STATUS_CLOSED,
@@ -86,10 +81,7 @@ class DiseaseReportViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['post'], permission_classes=[IsAuthority])
     def confirm_outbreak(self, request, pk=None):
-        """
-        AUTHORITY only — explicitly confirms this report as a confirmed outbreak.
-        This must always be a deliberate human decision — never automated.
-        """
+        """AUTHORITY only — explicitly confirms outbreak. Must always be a deliberate human decision."""
         instance = self.get_object()
         if instance.status != DiseaseReport.STATUS_ACCEPTED:
             return Response(

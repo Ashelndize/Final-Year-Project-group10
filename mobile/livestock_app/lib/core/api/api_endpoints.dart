@@ -44,4 +44,8 @@ class ApiEndpoints {
   static const String diseaseReports = '$baseUrl/disease-reports/';
   static String diseaseReportDetail(int id) =>
       '$baseUrl/disease-reports/$id/';
+
+  // Official announcements
+  static const String announcements = '$baseUrl/announcements/';
+  static String announcementDetail(int id) => '$baseUrl/announcements/$id/';
 }

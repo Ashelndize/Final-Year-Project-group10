@@ -1,0 +1,25 @@
+{% extends "dashboard/base.html" %}
+{% block title %}Withdraw Announcement{% endblock %}
+{% block content %}
+<div class="card" style="max-width:520px">
+  <div class="card-header fw-semibold text-danger">Withdraw: {{ announcement.title }}</div>
+  <div class="card-body">
+    <div class="alert alert-warning small">
+      Withdrawing an announcement will remove it from public view. This action is audited.
+      A reason is required.
+    </div>
+    <form method="post">
+      {% csrf_token %}
+      <div class="mb-3">
+        <label class="form-label">{{ form.reason.label }} *</label>
+        {{ form.reason }}
+        {% if form.reason.errors %}<div class="text-danger small">{{ form.reason.errors }}</div>{% endif %}
+      </div>
+      <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-danger">Confirm Withdrawal</button>
+        <a href="{% url 'dashboard:announcement_detail' announcement.pk %}" class="btn btn-outline-secondary">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

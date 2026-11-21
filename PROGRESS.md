@@ -1354,3 +1354,180 @@ Same 5 widget/unit tests from Phase 3 — all still passing.
 | `is_confirmed_outbreak` never set automatically | Satisfies the Phase 4 safety rule: unverified reports must not trigger official outbreak status without deliberate human review |
 | `/confirm_outbreak/` as a separate AUTHORITY-only action | Separates the deliberate confirmation step from routine status updates — requires conscious intent |
 | `area_name` free-text fallback alongside Area FK | Farmers may know their area by name but not by a system-assigned ID; supports both |
+
+---
+
+## Session — 2026-11-21 (Phase 5: Authority Dashboard and Official Announcements)
+
+### What was accomplished
+
+Full Phase 5 implementation: `announcements` REST API app, `dashboard` Django-templates authority portal (session auth), all 9 HTML templates, Flutter announcement screens, and in-app notifications wired to announcement publishing.
+
+**Executed by:** Claude Code agent (all files written via Write/Edit tools + Bash for migrations and tests)
+**Work packages:** WP-22, WP-23, WP-24, WP-25 (announcements + authority dashboard)
+
+---
+
+### New backend apps
+
+| App | Purpose | Endpoints |
+|---|---|---|
+| `announcements` | `OfficialAnnouncement` CRUD; `/publish/` and `/withdraw/` AUTHORITY-only actions; bulk Notification creation on publish | `GET/POST /api/v1/announcements/`, `GET/PATCH/DELETE /api/v1/announcements/:id/`, `/publish/`, `/withdraw/` |
+| `dashboard` | Session-authenticated authority portal (Django templates); report review queue; announcement lifecycle management | `GET /authority/`, `/authority/login/`, `/authority/reports/`, `/authority/reports/:id/`, `/authority/announcements/`, `/authority/announcements/new/`, `/authority/announcements/:id/`, `/authority/announcements/:id/edit/`, `/authority/announcements/:id/publish/`, `/authority/announcements/:id/withdraw/` |
+
+---
+
+### Commands run and results
+
+```
+# Backend
+python manage.py migrate           → announcements.0001_initial applied OK
+python manage.py test --verbosity=2 → Ran 62 tests in 16.5s — OK
+
+# Flutter
+flutter analyze                    → No issues found!
+```
+
+---
+
+### Fixes applied
+
+| Issue | Root cause | Fix |
+|---|---|---|
+| Dashboard `self.client.login()` failing in all 9 tests | django-axes `AxesBackend.authenticate()` requires a `request` argument; Django test `Client.login()` calls `authenticate()` without one | Changed all `self.client.login()` calls to `self.client.force_login(self.user)` in `dashboard/tests.py` |
+| Unused `IsSystemAdmin` import in `announcements/views.py` | Left over from initial draft | Removed |
+
+---
+
+### Test results
+
+#### Backend — 62/62 PASSED
+
+| App | Tests | Result |
+|---|---|---|
+| announcements | 8 | ALL PASS |
+| dashboard | 11 | ALL PASS |
+| veterinary | 5 | ALL PASS |
+| reports | 5 | ALL PASS |
+| accounts | 13 | ALL PASS |
+| farms | 6 | ALL PASS |
+| animals | 4 | ALL PASS |
+| health | 3 | ALL PASS |
+| audit | 2 | ALL PASS |
+| health_check | 5 | ALL PASS |
+| **Total** | **62** | **OK** |
+
+#### Flutter — 5/5 PASSED
+
+Same 5 widget/unit tests from Phase 3 — all still passing. `flutter analyze` → No issues found!
+
+---
+
+### Files created this session — backend (28 files)
+
+#### `announcements` app (10 files)
+
+| File | Purpose |
+|---|---|
+| `backend/announcements/__init__.py` | Package marker |
+| `backend/announcements/apps.py` | AnnouncementsConfig |
+| `backend/announcements/models.py` | `OfficialAnnouncement` — 4 types (OUTBREAK_ALERT/ADVISORY/GENERAL/WITHDRAWAL), 4 statuses (DRAFT/PUBLISHED/EXPIRED/WITHDRAWN), `issuing_authority` FK (PROTECT), `affected_area` FK (SET_NULL), M2M `related_reports`, `published_at`, `withdrawn_at`, `withdrawal_reason` |
+| `backend/announcements/serializers.py` | `OfficialAnnouncementSerializer` — `issuing_authority_name` computed field; write fields exclude `issuing_authority` (auto-set from request user) |
+| `backend/announcements/views.py` | `OfficialAnnouncementViewSet` — authenticated read (farmers/vets see PUBLISHED only); AUTHORITY required for create/edit; `/publish/` sets PUBLISHED + notifies all FARMER+VET users via `Notification.bulk_create`; `/withdraw/` requires reason |
+| `backend/announcements/urls.py` | DefaultRouter — `/api/v1/announcements/` |
+| `backend/announcements/admin.py` | `OfficialAnnouncementAdmin` |
+| `backend/announcements/tests.py` | 8 tests: authority creates draft, farmer cannot create, authority publishes, farmer sees published, farmer cannot see draft, withdraw with reason, withdraw requires reason, cannot publish twice |
+| `backend/announcements/migrations/__init__.py` | Package marker |
+| `backend/announcements/migrations/0001_initial.py` | CreateModel with M2M to `reports.diseasereport` and FK to `farms.area` |
+
+#### `dashboard` app (7 files + 9 templates)
+
+| File | Purpose |
+|---|---|
+| `backend/dashboard/__init__.py` | Package marker |
+| `backend/dashboard/apps.py` | DashboardConfig |
+| `backend/dashboard/decorators.py` | `@authority_required` — checks `request.user.is_authenticated` and `role in ('AUTHORITY', 'ADMIN')`, else redirect to `dashboard:login` |
+| `backend/dashboard/forms.py` | `ReportReviewForm` (status + notes), `AnnouncementForm` (ModelForm), `WithdrawForm` (reason CharField) |
+| `backend/dashboard/views.py` | 11 views: `dashboard_login`, `dashboard_logout`, `dashboard_index` (3 stat cards + recent lists), `report_queue` (filterable), `report_detail` (review form + audit trail), `announcement_list`, `announcement_create`, `announcement_edit`, `announcement_detail`, `announcement_publish`, `announcement_withdraw` |
+| `backend/dashboard/urls.py` | `app_name = 'dashboard'`; 10 URL patterns under `/authority/` |
+| `backend/dashboard/tests.py` | 11 tests across 3 classes: `DashboardAuthTests` (4), `DashboardReportTests` (3), `DashboardAnnouncementTests` (4) |
+
+#### Templates (9 files in `backend/templates/dashboard/`)
+
+| Template | Purpose |
+|---|---|
+| `base.html` | Bootstrap 5 CDN base; sidebar nav (dashboard, reports, announcements); session user display |
+| `login.html` | Username/password form; redirects to dashboard index on success |
+| `index.html` | 3 stat cards (pending reports, published announcements, total announcements) + 2 recent lists |
+| `report_queue.html` | Filterable table of disease reports by status; link to review detail |
+| `report_detail.html` | Full report fields + review form (status dropdown + notes) + recent audit events |
+| `announcement_list.html` | Table of all announcements; status badges; links to create/detail |
+| `announcement_form.html` | Create/edit form with draft-only banner; type, content, prevention guidance, area, species, related reports |
+| `announcement_detail.html` | Full announcement view; publish/withdraw action buttons with confirmation; related audit events |
+| `announcement_withdraw.html` | Reason text area form; requires non-empty reason before submitting |
+
+---
+
+### Files updated this session
+
+| File | Change |
+|---|---|
+| `backend/reports/models.py` | Added `STATUS_CLARIFICATION = 'CLARIFICATION_REQUESTED'` to `STATUS_CHOICES` and constants (max_length=30 — no migration needed) |
+| `backend/reports/views.py` | Added `DiseaseReport.STATUS_CLARIFICATION` to `allowed_statuses` in `/review/` action |
+| `backend/config/settings.py` | Added `'announcements'` and `'dashboard'` to `INSTALLED_APPS` |
+| `backend/config/urls.py` | Added `path('api/v1/', include('announcements.urls'))` and `path('authority/', include('dashboard.urls', namespace='dashboard'))` |
+| `backend/announcements/views.py` | Removed unused `IsSystemAdmin` import |
+| `backend/dashboard/tests.py` | Changed all `self.client.login()` to `self.client.force_login()` to bypass django-axes backend in tests |
+
+---
+
+### Flutter files created this session (4 files)
+
+| File | Purpose |
+|---|---|
+| `lib/features/announcements/models/announcement.dart` | `OfficialAnnouncement.fromJson`; `isPublished`, `isWithdrawn`, `isOutbreakAlert` getters; `statusColor` and `typeColor` by type/status |
+| `lib/features/announcements/providers/announcement_provider.dart` | `loadAnnouncements()` using `ApiClient.getList` + `data['results']`; ChangeNotifier |
+| `lib/features/announcements/screens/announcement_list_screen.dart` | Paginated list with type badge, status badge, area, published date; pull-to-refresh |
+| `lib/features/announcements/screens/announcement_detail_screen.dart` | Full detail view: type/status badges, meta row (issuing authority, area, species, dates), outbreak alert banner (red) if OUTBREAK_ALERT, prevention guidance (green box), withdrawal reason block |
+
+### Flutter files updated this session (3 files)
+
+| File | Change |
+|---|---|
+| `lib/core/api/api_endpoints.dart` | Added `announcements` const and `announcementDetail(int id)` method |
+| `lib/main.dart` | Added `AnnouncementProvider` import and `ChangeNotifierProvider` entry |
+| `lib/router/app_router.dart` | Added imports and 2 new routes: `/announcements` (list) and `/announcements/:id` (detail) |
+
+---
+
+### Phase 5 acceptance criteria — FINAL STATUS
+
+| Criterion | Status | Evidence |
+|---|---|---|
+| Announcement CRUD (AUTHORITY only create/edit/publish/withdraw) | **PASS** | `OfficialAnnouncementViewSet`; `get_permissions()` returns `IsAuthority` for all mutations |
+| Publish requires deliberate AUTHORITY human action | **PASS** | `/publish/` action is an explicit POST; never called automatically; documented in view docstring |
+| Announcement withdrawal with reason | **PASS** | `/withdraw/` requires non-empty `reason`; stores `withdrawal_reason` + `withdrawn_at`; audit logged |
+| Farmers/vets see published announcements only | **PASS** | `get_queryset()` filters `status=PUBLISHED` for non-AUTHORITY roles |
+| In-app notifications sent on publish | **PASS** | `_notify_users()` bulk-creates `Notification` for all active FARMER+VET users |
+| CLARIFICATION_REQUESTED report status | **PASS** | Added to `DiseaseReport.STATUS_CHOICES`; available in `/review/` action and dashboard form |
+| Authority dashboard (session auth, not JWT) | **PASS** | `@authority_required` decorator; session login via `/authority/login/`; role-gated |
+| Dashboard report review queue | **PASS** | `report_queue` and `report_detail` views; status update via POST form; audit trail shown |
+| Dashboard announcement lifecycle | **PASS** | Create → edit → publish → withdraw; all gated by `@authority_required`; audit logged at each step |
+| Backend tests → all pass | **PASS** | 62/62 tests (43 from Phases 1–4 + 19 new Phase 5 tests) |
+| `flutter analyze` → no issues | **PASS** | Confirmed after adding announcement routes |
+
+**Phase 5 is complete. Ready to proceed to Phase 6 (AI Assistant).**
+
+---
+
+### Key design decisions
+
+| Decision | Rationale |
+|---|---|
+| Dashboard uses session auth, not JWT | Browser-based portal; session cookies fit naturally; avoids storing JWT in localStorage (XSS risk) |
+| `@authority_required` decorator (not DRF permission) | Dashboard views are plain Django views, not DRF — DRF permissions don't apply |
+| `force_login()` in dashboard tests | `self.client.login()` triggers django-axes auth backend which requires a request parameter — test client doesn't pass one |
+| `Notification.bulk_create()` on announcement publish | Efficient single query for fan-out to all farmers/vets; avoids N+1 |
+| `issuing_authority` FK with `on_delete=PROTECT` | Prevents deletion of a user who has issued announcements — protects accountability chain |
+| `withdrawal_reason` required, stored in DB | Provides auditable trace for every withdrawal; enforced at both API and dashboard form level |
+| Announcement publish = "never automated" | Phase 5 safety rule: only an authenticated AUTHORITY human can publish; documented in view docstring and design decisions |

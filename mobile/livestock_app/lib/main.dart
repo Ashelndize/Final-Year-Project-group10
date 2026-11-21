@@ -9,6 +9,7 @@ import 'features/vaccinations/providers/vaccination_provider.dart';
 import 'features/notifications/providers/notification_provider.dart';
 import 'features/veterinary/providers/assistance_provider.dart';
 import 'features/reports/providers/report_provider.dart';
+import 'features/announcements/providers/announcement_provider.dart';
 
 void main() {
   runApp(
@@ -22,6 +23,7 @@ void main() {
         ChangeNotifierProvider(create: (_) => NotificationProvider()),
         ChangeNotifierProvider(create: (_) => AssistanceProvider()),
         ChangeNotifierProvider(create: (_) => ReportProvider()),
+        ChangeNotifierProvider(create: (_) => AnnouncementProvider()),
       ],
       child: const LivestockApp(),
     ),
