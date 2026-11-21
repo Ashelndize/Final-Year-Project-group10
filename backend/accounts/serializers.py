@@ -2,6 +2,7 @@ from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from .models import CustomUser, FarmerProfile, VetProfile
+from audit.models import AuditEvent
 
 
 class RegisterSerializer(serializers.ModelSerializer):
@@ -41,6 +42,19 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         token['role'] = user.role
         token['username'] = user.username
         return token
+
+    def validate(self, attrs):
+        data = super().validate(attrs)
+        # JWT login does not fire django.contrib.auth.signals.user_logged_in,
+        # so we create the audit event explicitly here.
+        AuditEvent.log(
+            actor=self.user,
+            action=AuditEvent.Action.LOGIN_SUCCESS,
+            target_type='User',
+            target_id=self.user.pk,
+            description=f'User {self.user.username} logged in via JWT.',
+        )
+        return data
 
 
 class UserSerializer(serializers.ModelSerializer):

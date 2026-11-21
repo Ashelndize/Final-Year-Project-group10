@@ -66,6 +66,7 @@ INSTALLED_APPS = [
     'dashboard',
     'assistant',
     'suspicious_activity',
+    'integration_tests',
 ]
 
 # ---------------------------------------------------------------------------

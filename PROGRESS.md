@@ -1862,4 +1862,102 @@ Ran 11 tests — All tests passed!
 | `OfflineQueueException` for object-return providers | `submitReport` and `createRequest` return model objects — cannot return null cleanly; exception lets the form screen distinguish "queued" from "error" via typed catch |
 | `health_provider` returns `true` when offline | `createRecord` already returns `bool`; `true` means "accepted" (queued counts as accepted); no API change needed |
 | `MaterialApp.router builder:` for `OfflineBanner` | Global overlay that wraps all routes; no per-screen boilerplate; works with `GoRouter` |
+
+---
+
+## Session — 2026-11-21 (Phase 7 — Integration, Testing, and Acceptance)
+
+### What was accomplished
+
+Full Phase 7 implementation: 47 backend integration tests covering the
+12-step end-to-end workflow, cross-role permission matrix, JWT security,
+location privacy, audit trail, and notifications; 16 new Flutter unit tests;
+one backend defect discovered and fixed (DEF-001); three testing documentation
+files created.
+
+---
+
+### Defects discovered and fixed
+
+| ID | Severity | Description | Fix |
+|---|---|---|---|
+| DEF-001 | Medium | JWT login events never recorded in audit trail — `user_logged_in` signal not fired by JWT flow | Added `validate()` override in `CustomTokenObtainPairSerializer` to call `AuditEvent.log()` explicitly |
+
+---
+
+### Backend integration tests — 47 new tests
+
+**App:** `backend/integration_tests/`
+**Command:** `python manage.py test --verbosity=2`
+**Result:** Ran 122 tests — OK (75 unit + 47 integration)
+
+| File | Class(es) | Tests |
+|---|---|---|
+| `test_e2e_workflow.py` | `EndToEndWorkflowTest` | 1 (12-step) |
+| `test_permissions.py` | `AuthenticationBoundaryTests`, `FarmerPermissionTests`, `VetPermissionTests`, `AuthorityPermissionTests` | 19 |
+| `test_security.py` | `JWTSecurityTests`, `LocationPrivacyTests`, `AuditSecurityTests`, `CrossUserAccessTests` | 14 |
+| `test_audit_trail.py` | `AuthAuditTests`, `ReportAuditTests`, `AnnouncementAuditTests`, `VetRequestAuditTests` | 7 |
+| `test_notifications.py` | `AnnouncementNotificationTests` | 6 |
+| **Total** | | **47** |
+
+---
+
+### Flutter unit tests — 16 new tests (27 total)
+
+**Command:** `flutter test test/widget_test.dart`
+**Result:** `+27: All tests passed!`
+
+| Group | New tests | Description |
+|---|---|---|
+| `HealthRecord model` | 6 | `fromJson` parsing, all status labels, all status colours, null optional fields |
+| `DiseaseReport model` | 4 | `fromJson` parsing, GPS coordinate parsing, all status colours, unknown status default |
+| `AssistantResponse model` | 6 | `fromJson` parsing, `isFromKB` / `isDisabled` / `isRefused` getters, safety flags list, escalation flag |
+
+---
+
+### Files created this session
+
+| File | Purpose |
+|---|---|
+| `backend/integration_tests/__init__.py` | Python package marker |
+| `backend/integration_tests/apps.py` | `IntegrationTestsConfig` AppConfig |
+| `backend/integration_tests/test_e2e_workflow.py` | 12-step end-to-end workflow test |
+| `backend/integration_tests/test_permissions.py` | Cross-role permission matrix (4 test classes, 19 tests) |
+| `backend/integration_tests/test_security.py` | JWT, location privacy, audit security, cross-user isolation (14 tests) |
+| `backend/integration_tests/test_audit_trail.py` | Audit trail completeness — auth, reports, announcements, vet requests (7 tests) |
+| `backend/integration_tests/test_notifications.py` | Announcement notification dispatch and read workflow (6 tests) |
+| `docs/03_testing/defect-log.md` | DEF-001 documented (JWT audit gap — found and fixed) |
+| `docs/03_testing/requirements-traceability-matrix.md` | Maps all 86 Phase 7 requirements to implementation and test evidence |
+| `docs/03_testing/acceptance-test-results.md` | Full acceptance test run results — 149/149 tests passing |
+
+---
+
+### Files modified this session
+
+| File | Change |
+|---|---|
+| `backend/config/settings.py` | Added `'integration_tests'` to `INSTALLED_APPS` |
+| `backend/accounts/serializers.py` | Added `validate()` override in `CustomTokenObtainPairSerializer` to log `LOGIN_SUCCESS` audit event on JWT login (DEF-001 fix) |
+| `mobile/livestock_app/test/widget_test.dart` | Added imports for `HealthRecord`, `DiseaseReport`, `AssistantResponse`; added 16 new unit tests across 3 model groups |
+
+---
+
+### Phase 7 acceptance criteria — FINAL STATUS
+
+| Criterion | Status | Evidence |
+|---|---|---|
+| 12-step E2E workflow completes end-to-end | **PASS** | `EndToEndWorkflowTest` |
+| JWT tokens cannot be forged or reused | **PASS** | `JWTSecurityTests` (4 tests) |
+| GPS coordinates respect `location_consent` flag | **PASS** | `LocationPrivacyTests` (3 tests) |
+| Audit log never exposes passwords or tokens | **PASS** | `AuditSecurityTests` (2 tests) |
+| Audit log accessible only to ADMIN | **PASS** | `test_audit_log_requires_admin` |
+| Cross-user resource isolation enforced | **PASS** | `CrossUserAccessTests` (4 tests) |
+| Unauthenticated requests rejected (all 9 endpoints) | **PASS** | `AuthenticationBoundaryTests` |
+| Role boundaries enforced (FARMER / VET / AUTHORITY) | **PASS** | 17 role-permission tests |
+| Audit trail records all required events | **PASS** | 7 audit-trail tests (after DEF-001 fix) |
+| Notifications reach correct recipients | **PASS** | `AnnouncementNotificationTests` (6 tests) |
+| Mobile models correctly deserialise API responses | **PASS** | Flutter unit tests 27/27 |
+| Zero failing tests | **PASS** | 149/149 tests pass |
+
+**Phase 7 is complete.**
 | `clearAll()` in `logout()` not `SyncService.clearQueue()` | `AuthProvider.logout()` already has the `OfflineDatabase` import; keeping the call there avoids a dependency on `SyncService` in the auth layer |
