@@ -1,5 +1,9 @@
 class ApiEndpoints {
-  static const String baseUrl = 'http://10.0.2.2:8000/api/v1';
+  // Use localhost — works for physical devices via `adb reverse tcp:8000 tcp:8000`
+  // and for emulators after `adb reverse tcp:8000 tcp:8000`.
+  // If running over Wi-Fi (no USB), replace with your machine's LAN IP, e.g.:
+  //   static const String baseUrl = 'http://192.168.0.107:8000/api/v1';
+  static const String baseUrl = 'http://localhost:8000/api/v1';
 
   // Auth
   static const String register = '$baseUrl/auth/register/';
@@ -51,4 +55,8 @@ class ApiEndpoints {
 
   // AI Health Assistant
   static const String assistantAsk = '$baseUrl/assistant/ask/';
+
+  // Password reset
+  static const String passwordResetRequest = '$baseUrl/auth/password-reset/request/';
+  static const String passwordResetConfirm = '$baseUrl/auth/password-reset/confirm/';
 }

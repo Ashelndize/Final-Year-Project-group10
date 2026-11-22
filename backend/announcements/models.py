@@ -38,6 +38,16 @@ class OfficialAnnouncement(models.Model):
         ('OTHER', 'Other'),
     ]
 
+    AUDIENCE_ALL = 'ALL'
+    AUDIENCE_FARMERS = 'FARMERS_ONLY'
+    AUDIENCE_VETS = 'VETS_ONLY'
+
+    AUDIENCE_CHOICES = [
+        (AUDIENCE_ALL, 'All Users (Farmers & Vets)'),
+        (AUDIENCE_FARMERS, 'Farmers Only'),
+        (AUDIENCE_VETS, 'Veterinarians Only'),
+    ]
+
     title = models.CharField(max_length=255)
     announcement_type = models.CharField(max_length=20, choices=ANNOUNCEMENT_TYPES, default=TYPE_ADVISORY)
     content = models.TextField()
@@ -57,6 +67,10 @@ class OfficialAnnouncement(models.Model):
     )
     affected_area_name = models.CharField(max_length=100, blank=True)
     affected_species = models.CharField(max_length=20, choices=SPECIES_CHOICES, blank=True)
+    target_audience = models.CharField(
+        max_length=20, choices=AUDIENCE_CHOICES, default=AUDIENCE_ALL,
+        help_text='Who should receive this announcement and its notification.',
+    )
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_DRAFT)
     published_at = models.DateTimeField(null=True, blank=True)
     expires_at = models.DateTimeField(null=True, blank=True)

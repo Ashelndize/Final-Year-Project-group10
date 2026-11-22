@@ -1,0 +1,106 @@
+{% extends "dashboard/base.html" %}
+{% block title %}{{ ann.title }}{% endblock %}
+{% block page_title %}Announcement{% endblock %}
+
+{% block content %}
+<div class="row g-3">
+  <!-- Main content -->
+  <div class="col-lg-8">
+    <div class="card border-0 shadow-sm mb-3">
+      <div class="card-body">
+        <!-- Badges -->
+        <div class="d-flex flex-wrap gap-2 mb-3">
+          {% if ann.announcement_type == 'OUTBREAK_ALERT' %}<span class="badge bg-danger fs-6">Outbreak Alert</span>
+          {% elif ann.announcement_type == 'ADVISORY' %}<span class="badge bg-warning text-dark fs-6">Advisory</span>
+          {% elif ann.announcement_type == 'WITHDRAWAL' %}<span class="badge bg-secondary fs-6">Withdrawal</span>
+          {% else %}<span class="badge bg-info text-dark fs-6">General Info</span>{% endif %}
+
+          {% if ann.status == 'PUBLISHED' %}<span class="badge badge-published fs-6">Published</span>
+          {% elif ann.status == 'DRAFT' %}<span class="badge badge-draft fs-6">Draft</span>
+          {% elif ann.status == 'WITHDRAWN' %}<span class="badge badge-withdrawn fs-6">Withdrawn</span>
+          {% else %}<span class="badge badge-expired fs-6">Expired</span>{% endif %}
+
+          {% if ann.target_audience == 'FARMERS_ONLY' %}<span class="badge bg-success fs-6"><i class="bi bi-tree me-1"></i>Farmers Only</span>
+          {% elif ann.target_audience == 'VETS_ONLY' %}<span class="badge bg-primary fs-6"><i class="bi bi-hospital me-1"></i>Vets Only</span>
+          {% else %}<span class="badge fs-6" style="background:#6f42c1"><i class="bi bi-people me-1"></i>All Users</span>{% endif %}
+        </div>
+
+        <h4 class="fw-bold mb-3">{{ ann.title }}</h4>
+
+        <dl class="row small text-muted mb-3">
+          <dt class="col-sm-4">Issued by</dt>
+          <dd class="col-sm-8">{{ ann.issuing_authority.get_full_name|default:ann.issuing_authority.username }}</dd>
+          {% if ann.affected_area_name %}
+          <dt class="col-sm-4">Affected area</dt>
+          <dd class="col-sm-8">{{ ann.affected_area_name }}</dd>
+          {% endif %}
+          {% if ann.affected_species %}
+          <dt class="col-sm-4">Affected species</dt>
+          <dd class="col-sm-8">{{ ann.get_affected_species_display }}</dd>
+          {% endif %}
+          {% if ann.published_at %}
+          <dt class="col-sm-4">Published</dt>
+          <dd class="col-sm-8">{{ ann.published_at|date:"d F Y, H:i" }}</dd>
+          {% endif %}
+        </dl>
+
+        <hr>
+        <h6 class="fw-semibold">Details</h6>
+        <p style="white-space:pre-wrap;">{{ ann.content }}</p>
+
+        {% if ann.prevention_guidance %}
+        <div class="mt-3 p-3 bg-success bg-opacity-10 border border-success border-opacity-25 rounded">
+          <h6 class="fw-semibold text-success"><i class="bi bi-shield-check me-1"></i>Prevention &amp; Guidance</h6>
+          <p class="mb-0" style="white-space:pre-wrap;">{{ ann.prevention_guidance }}</p>
+        </div>
+        {% endif %}
+
+        {% if ann.status == 'WITHDRAWN' and ann.withdrawal_reason %}
+        <div class="mt-3 p-3 bg-secondary bg-opacity-10 border rounded">
+          <h6 class="fw-semibold">Withdrawal reason</h6>
+          <p class="mb-0">{{ ann.withdrawal_reason }}</p>
+          {% if ann.withdrawn_at %}<small class="text-muted">Withdrawn {{ ann.withdrawn_at|date:"d F Y, H:i" }}</small>{% endif %}
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Action panel -->
+  <div class="col-lg-4">
+    {% if ann.status == 'DRAFT' %}
+    <div class="card border-0 shadow-sm mb-3 border-success">
+      <div class="card-header bg-success text-white fw-semibold">Publish Announcement</div>
+      <div class="card-body">
+        <p class="small text-muted">Publishing will make this visible to the target audience and send in-app notifications.</p>
+        <form method="post" action="{% url 'dashboard:announcement_publish' ann.pk %}"
+              onsubmit="return confirm('Publish this announcement now?')">
+          {% csrf_token %}
+          <button class="btn btn-success w-100"><i class="bi bi-send me-1"></i>Publish Now</button>
+        </form>
+      </div>
+    </div>
+    {% endif %}
+
+    {% if ann.status == 'PUBLISHED' %}
+    <div class="card border-0 shadow-sm mb-3">
+      <div class="card-header bg-warning text-dark fw-semibold">Withdraw Announcement</div>
+      <div class="card-body">
+        <form method="post" action="{% url 'dashboard:announcement_withdraw' ann.pk %}">
+          {% csrf_token %}
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Reason for withdrawal <span class="text-danger">*</span></label>
+            <textarea name="reason" class="form-control form-control-sm" rows="3" placeholder="State the reason..." required></textarea>
+          </div>
+          <button class="btn btn-warning w-100 text-dark"><i class="bi bi-x-circle me-1"></i>Withdraw</button>
+        </form>
+      </div>
+    </div>
+    {% endif %}
+
+    <a href="{% url 'dashboard:announcements_list' %}" class="btn btn-outline-secondary w-100">
+      <i class="bi bi-arrow-left me-1"></i>Back to announcements
+    </a>
+  </div>
+</div>
+{% endblock %}

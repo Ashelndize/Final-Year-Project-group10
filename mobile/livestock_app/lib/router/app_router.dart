@@ -2,6 +2,7 @@ import 'package:go_router/go_router.dart';
 import '../features/auth/providers/auth_provider.dart';
 import '../features/auth/screens/login_screen.dart';
 import '../features/auth/screens/register_screen.dart';
+import '../features/auth/screens/forgot_password_screen.dart';
 import '../features/dashboard/screens/dashboard_screen.dart';
 import '../features/farms/screens/farm_list_screen.dart';
 import '../features/farms/screens/farm_form_screen.dart';
@@ -30,15 +31,16 @@ GoRouter createRouter(AuthProvider authProvider) {
       final status = authProvider.status;
       if (status == AuthStatus.unknown) return null;
       final isAuth = status == AuthStatus.authenticated;
-      final loggingIn = state.matchedLocation == '/login' ||
-          state.matchedLocation == '/register';
-      if (!isAuth && !loggingIn) return '/login';
-      if (isAuth && loggingIn) return '/dashboard';
+      final publicRoutes = {'/login', '/register', '/forgot-password'};
+      final isPublic = publicRoutes.contains(state.matchedLocation);
+      if (!isAuth && !isPublic) return '/login';
+      if (isAuth && isPublic) return '/dashboard';
       return null;
     },
     routes: [
       GoRoute(path: '/login', builder: (_, __) => const LoginScreen()),
       GoRoute(path: '/register', builder: (_, __) => const RegisterScreen()),
+      GoRoute(path: '/forgot-password', builder: (_, __) => const ForgotPasswordScreen()),
       GoRoute(path: '/dashboard', builder: (_, __) => const DashboardScreen()),
       GoRoute(path: '/farms', builder: (_, __) => const FarmListScreen()),
       GoRoute(path: '/farms/new', builder: (_, __) => const FarmFormScreen()),

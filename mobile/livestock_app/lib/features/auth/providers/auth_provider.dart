@@ -118,6 +118,69 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
+  /// Returns a map with keys: `success` (bool), `message` (String),
+  /// and optionally `devToken` (String) when the backend is in dev mode.
+  Future<Map<String, dynamic>> requestPasswordReset(String email) async {
+    _loading = true;
+    _error = null;
+    notifyListeners();
+    try {
+      final data = await ApiClient.post(
+        ApiEndpoints.passwordResetRequest,
+        {'email': email},
+        auth: false,
+      );
+      _loading = false;
+      notifyListeners();
+      return {
+        'success': true,
+        'message': data['detail'] as String? ?? 'Reset code sent.',
+        'devToken': data['dev_token'] as String?,
+        'devNote': data['dev_note'] as String?,
+      };
+    } on ApiException catch (e) {
+      _error = e.message;
+      _loading = false;
+      notifyListeners();
+      return {'success': false, 'message': e.message};
+    } catch (_) {
+      _error = 'Network error. Please check your connection.';
+      _loading = false;
+      notifyListeners();
+      return {'success': false, 'message': _error!};
+    }
+  }
+
+  Future<Map<String, dynamic>> confirmPasswordReset({
+    required String token,
+    required String newPassword,
+    required String newPassword2,
+  }) async {
+    _loading = true;
+    _error = null;
+    notifyListeners();
+    try {
+      final data = await ApiClient.post(
+        ApiEndpoints.passwordResetConfirm,
+        {'token': token, 'new_password': newPassword, 'new_password2': newPassword2},
+        auth: false,
+      );
+      _loading = false;
+      notifyListeners();
+      return {'success': true, 'message': data['detail'] as String? ?? 'Password reset.'};
+    } on ApiException catch (e) {
+      _error = e.message;
+      _loading = false;
+      notifyListeners();
+      return {'success': false, 'message': e.message};
+    } catch (_) {
+      _error = 'Network error. Please check your connection.';
+      _loading = false;
+      notifyListeners();
+      return {'success': false, 'message': _error!};
+    }
+  }
+
   Future<void> logout() async {
     try {
       final refresh = await SecureStorage.getRefreshToken();

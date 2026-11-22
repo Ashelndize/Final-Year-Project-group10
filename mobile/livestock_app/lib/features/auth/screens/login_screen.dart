@@ -94,7 +94,18 @@ class _LoginScreenState extends State<LoginScreen> {
                     validator: (v) =>
                         v == null || v.isEmpty ? 'Password is required' : null,
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 8),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton(
+                      onPressed: () => context.go('/forgot-password'),
+                      child: const Text(
+                        'Forgot password?',
+                        style: TextStyle(color: Colors.green),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
                   ElevatedButton(
                     onPressed: loading ? null : _submit,
                     style: ElevatedButton.styleFrom(
@@ -111,7 +122,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           )
                         : const Text('Sign In', style: TextStyle(fontSize: 16)),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 12),
                   TextButton(
                     onPressed: () => context.go('/register'),
                     child: const Text("Don't have an account? Register"),

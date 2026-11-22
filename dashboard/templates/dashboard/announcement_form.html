@@ -1,0 +1,79 @@
+{% extends "dashboard/base.html" %}
+{% block title %}New Announcement{% endblock %}
+{% block page_title %}New Announcement{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <div class="card border-0 shadow-sm">
+      <div class="card-header bg-white fw-semibold">Create Announcement</div>
+      <div class="card-body">
+        <form method="post">
+          {% csrf_token %}
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Title <span class="text-danger">*</span></label>
+            <input type="text" name="title" class="form-control" value="{{ form_data.title|default:'' }}" placeholder="e.g. Foot and Mouth Disease Alert — Harare Province" required>
+          </div>
+
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Announcement Type</label>
+              <select name="announcement_type" class="form-select">
+                {% for val, label in type_choices %}
+                  <option value="{{ val }}" {% if form_data.announcement_type == val %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Target Audience</label>
+              <select name="target_audience" class="form-select">
+                {% for val, label in audience_choices %}
+                  <option value="{{ val }}" {% if form_data.target_audience == val %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+              </select>
+              <div class="form-text">Only the selected group will receive this announcement and its notification.</div>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Content <span class="text-danger">*</span></label>
+            <textarea name="content" class="form-control" rows="6" placeholder="Full announcement text..." required>{{ form_data.content|default:'' }}</textarea>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Prevention &amp; Guidance <span class="text-muted fw-normal small">(optional)</span></label>
+            <textarea name="prevention_guidance" class="form-control" rows="4" placeholder="Recommended actions, preventive measures...">{{ form_data.prevention_guidance|default:'' }}</textarea>
+          </div>
+
+          <div class="row g-3 mb-4">
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Affected Area <span class="text-muted fw-normal small">(optional)</span></label>
+              <select name="affected_area" class="form-select">
+                <option value="">— Select area —</option>
+                {% for area in areas %}
+                  <option value="{{ area.pk }}" {% if form_data.affected_area == area.pk|stringformat:"s" %}selected{% endif %}>{{ area.name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Affected Species <span class="text-muted fw-normal small">(optional)</span></label>
+              <select name="affected_species" class="form-select">
+                {% for val, label in species_choices %}
+                  <option value="{{ val }}" {% if form_data.affected_species == val %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+
+          <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-success px-4">
+              <i class="bi bi-save me-1"></i>Save as Draft
+            </button>
+            <a href="{% url 'dashboard:announcements_list' %}" class="btn btn-outline-secondary">Cancel</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

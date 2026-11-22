@@ -89,7 +89,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           padding: const EdgeInsets.all(16),
           children: [
             Text(
-              'Welcome, ${user?.firstName ?? user?.username ?? 'Farmer'}!',
+              'Welcome, ${user?.firstName.isNotEmpty == true ? user!.firstName : user?.username ?? 'User'}!',
               style: Theme.of(context)
                   .textTheme
                   .headlineSmall
@@ -97,7 +97,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
             const SizedBox(height: 4),
             Text(
-              'Smart Livestock Management',
+              user?.isVet == true ? 'Veterinarian Portal' : 'Farmer Portal',
               style: Theme.of(context)
                   .textTheme
                   .bodyMedium
@@ -196,21 +196,54 @@ class _DashboardScreenState extends State<DashboardScreen> {
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
             ),
             const SizedBox(height: 12),
-            _QuickAction(
-              icon: Icons.add_circle_outline,
-              label: 'Register New Farm',
-              onTap: () => context.go('/farms/new'),
-            ),
-            _QuickAction(
-              icon: Icons.vaccines,
-              label: 'View Vaccination Schedule',
-              onTap: () => context.go('/vaccinations'),
-            ),
-            _QuickAction(
-              icon: Icons.list_alt,
-              label: 'My Farms',
-              onTap: () => context.go('/farms'),
-            ),
+            if (user?.isVet == true) ...[
+              _QuickAction(
+                icon: Icons.assignment_outlined,
+                label: 'Submit Disease Report',
+                onTap: () => context.go('/reports/new'),
+              ),
+              _QuickAction(
+                icon: Icons.list_alt,
+                label: 'My Disease Reports',
+                onTap: () => context.go('/reports'),
+              ),
+              _QuickAction(
+                icon: Icons.local_hospital_outlined,
+                label: 'Assistance Requests',
+                onTap: () => context.go('/assistance'),
+              ),
+              _QuickAction(
+                icon: Icons.campaign_outlined,
+                label: 'Official Announcements',
+                onTap: () => context.go('/announcements'),
+              ),
+            ] else ...[
+              _QuickAction(
+                icon: Icons.add_circle_outline,
+                label: 'Register New Farm',
+                onTap: () => context.go('/farms/new'),
+              ),
+              _QuickAction(
+                icon: Icons.list_alt,
+                label: 'My Farms',
+                onTap: () => context.go('/farms'),
+              ),
+              _QuickAction(
+                icon: Icons.vaccines,
+                label: 'Vaccination Schedule',
+                onTap: () => context.go('/vaccinations'),
+              ),
+              _QuickAction(
+                icon: Icons.local_hospital_outlined,
+                label: 'Find a Veterinarian',
+                onTap: () => context.go('/vets'),
+              ),
+              _QuickAction(
+                icon: Icons.campaign_outlined,
+                label: 'Disease Announcements',
+                onTap: () => context.go('/announcements'),
+              ),
+            ],
             _QuickAction(
               icon: Icons.psychology,
               label: 'AI Health Assistant',

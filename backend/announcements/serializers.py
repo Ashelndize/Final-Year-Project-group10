@@ -15,6 +15,9 @@ class OfficialAnnouncementSerializer(serializers.ModelSerializer):
         source='affected_area.name', read_only=True, allow_null=True
     )
     is_active = serializers.BooleanField(read_only=True)
+    target_audience_display = serializers.CharField(
+        source='get_target_audience_display', read_only=True
+    )
 
     class Meta:
         model = OfficialAnnouncement
@@ -24,6 +27,7 @@ class OfficialAnnouncementSerializer(serializers.ModelSerializer):
             'issuing_authority', 'issuing_authority_username', 'issuing_authority_name',
             'affected_area', 'affected_area_display', 'affected_area_name',
             'affected_species',
+            'target_audience', 'target_audience_display',
             'status', 'status_display', 'is_active',
             'published_at', 'expires_at', 'withdrawn_at', 'withdrawal_reason',
             'created_at', 'updated_at',

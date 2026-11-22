@@ -2013,4 +2013,171 @@ Production security configuration, backup/restore scripts, Gunicorn deployment c
 | Handover package complete | **PASS** | `docs/04_deployment/handover-checklist.md` |
 | README reflects actual implemented state | **PASS** | §17 updated with phase summary, test evidence, quick start |
 
+---
+
+## Session — 2026-11-22 (Post-Phase 8 — Bug fixes, forgot password, authority dashboard)
+
+### What was accomplished
+
+Fixed Android network connectivity for physical device testing, implemented password reset flow end-to-end, added role-aware UI for farmers and vets, added targeted announcement delivery (by audience), and built the full authority web dashboard from scratch.
+
+---
+
+### 1. Android network fix
+
+| Item | Detail |
+|---|---|
+| Problem | App installed on Pixel 4a showed "network error" on all API calls |
+| Root cause 1 | `AndroidManifest.xml` was missing `<uses-permission android:name="android.permission.INTERNET" />` — regenerated manifest from `flutter create` did not include it |
+| Root cause 2 | `android:usesCleartextTraffic="true"` was missing — Android 9+ blocks plain HTTP without it |
+| Root cause 3 | Base URL was `http://10.0.2.2:8000` (emulator-only alias) — physical devices cannot reach this |
+| Fix 1 | Added INTERNET, ACCESS_FINE_LOCATION, ACCESS_COARSE_LOCATION permissions to `mobile/livestock_app/android/app/src/main/AndroidManifest.xml` |
+| Fix 2 | Added `android:usesCleartextTraffic="true"` to `<application>` element |
+| Fix 3 | Changed base URL in `mobile/livestock_app/lib/core/api/api_endpoints.dart` from `http://10.0.2.2:8000/api/v1` to `http://localhost:8000/api/v1` |
+| Fix 4 | Used `adb reverse tcp:8000 tcp:8000` to tunnel device port 8000 → host port 8000 over USB |
+| Server | Backend must be started with `python manage.py runserver 0.0.0.0:8000` (not `127.0.0.1:8000`) |
+
+---
+
+### 2. Password reset — backend
+
+New model, serializers, views, and URLs added to the `accounts` app.
+
+**Model — `PasswordResetToken`** (`backend/accounts/models.py`):
+- Fields: `user` (FK), `token` (6-digit random OTP), `created_at`, `expires_at` (15 min), `used` (bool)
+- Class method `generate_for(user)` — invalidates old tokens, creates a new one
+- Property `is_valid` — checks expiry and used flag
+
+**Serializers** (`backend/accounts/serializers.py`):
+- `PasswordResetRequestSerializer` — validates email; silently succeeds if email not found (no enumeration)
+- `PasswordResetConfirmSerializer` — validates token (not expired, not used), new password match, Django password validators
+
+**Views** (`backend/accounts/views.py`):
+- `PasswordResetRequestView` — `POST /api/v1/auth/password-reset/request/` — always returns 200; in dev mode (console email backend) also returns `dev_token` and `dev_note` in response body so the app can be tested without SMTP
+- `PasswordResetConfirmView` — `POST /api/v1/auth/password-reset/confirm/` — resets password, marks token used
+
+**Migration:** `accounts/migrations/0002_password_reset_token.py`
+
+---
+
+### 3. Password reset — Flutter
+
+| File | Change |
+|---|---|
+| `lib/core/api/api_endpoints.dart` | Added `passwordResetRequest` and `passwordResetConfirm` constants |
+| `lib/features/auth/providers/auth_provider.dart` | Added `requestPasswordReset(email)` and `confirmPasswordReset(token, newPassword, newPassword2)` methods |
+| `lib/features/auth/screens/forgot_password_screen.dart` | New screen — 2-step flow: Step 1 enter email → Step 2 enter 6-digit code + new password. Shows `dev_token` in an amber info box when backend returns it (dev mode only) |
+| `lib/features/auth/screens/login_screen.dart` | Added "Forgot password?" `TextButton` above the Sign In button, navigates to `/forgot-password` |
+| `lib/router/app_router.dart` | Added `/forgot-password` as a public route (no auth required); updated redirect guard to treat `/forgot-password` as public alongside `/login` and `/register` |
+
+---
+
+### 4. Role-aware dashboard
+
+**File:** `mobile/livestock_app/lib/features/dashboard/screens/dashboard_screen.dart`
+
+| Change | Detail |
+|---|---|
+| Welcome subtitle | Changed from hardcoded `'Smart Livestock Management'` to `'Farmer Portal'` / `'Veterinarian Portal'` based on `user.isVet` |
+| Welcome name | Fixed fallback — was `'Farmer'`; now uses `username` if `firstName` is empty |
+| Quick Actions — farmers | Register New Farm, My Farms, Vaccination Schedule, Find a Veterinarian, Disease Announcements |
+| Quick Actions — vets | Submit Disease Report, My Disease Reports, Assistance Requests, Official Announcements |
+| Shared action | AI Health Assistant shown to all roles |
+
+---
+
+### 5. Targeted announcements
+
+**Problem:** Announcements were sent to all farmers and vets regardless of relevance.
+
+**Backend changes:**
+
+| File | Change |
+|---|---|
+| `backend/announcements/models.py` | Added `target_audience` field — choices: `ALL` (default), `FARMERS_ONLY`, `VETS_ONLY` |
+| `backend/announcements/views.py` — `get_queryset` | Farmers only see `ALL` and `FARMERS_ONLY` announcements; vets only see `ALL` and `VETS_ONLY`; authority sees everything |
+| `backend/announcements/views.py` — `_notify_users` | Notification recipients filtered by `target_audience` — no longer always all farmers + vets |
+| `backend/announcements/serializers.py` | Added `target_audience` and `target_audience_display` to serializer fields |
+| Migration | `announcements/migrations/0002_add_target_audience.py` |
+
+**Flutter changes:**
+
+| File | Change |
+|---|---|
+| `lib/features/announcements/models/announcement.dart` | Added `targetAudience`, `targetAudienceDisplay` fields to model and `fromJson`; added `audienceColor` and `audienceIcon` getters |
+| `lib/features/announcements/screens/announcement_list_screen.dart` | Added audience badge row (icon + display text with role colour) to each announcement card |
+| `lib/features/announcements/screens/announcement_detail_screen.dart` | Added audience badge to the badges row; updated `_Badge` widget to accept an optional `icon` parameter |
+
+---
+
+### 6. Authority web dashboard
+
+**Problem:** The `dashboard/` app existed as a placeholder (`.gitkeep` only). The URL `/authority/` was registered in `config/urls.py` but had no views, templates, or logic.
+
+**Files created:**
+
+| File | Purpose |
+|---|---|
+| `dashboard/__init__.py` | Python package marker |
+| `dashboard/apps.py` | AppConfig (`name = 'dashboard'`) |
+| `dashboard/urls.py` | 11 URL patterns under `app_name = 'dashboard'` |
+| `dashboard/views.py` | All view functions — login, logout, home, reports list/detail/review/confirm-outbreak, announcements list/create/detail/publish/withdraw |
+| `dashboard/templates/dashboard/base.html` | Dark green sidebar layout (Bootstrap 5 CDN), top bar, flash messages, sign-out form |
+| `dashboard/templates/dashboard/login.html` | Standalone login page with CSRF |
+| `dashboard/templates/dashboard/home.html` | 4 stat cards (total reports, awaiting review, confirmed outbreaks, live announcements) + recent reports table + recent announcements table |
+| `dashboard/templates/dashboard/reports_list.html` | Filterable table of all disease reports (by status and species); clickable rows |
+| `dashboard/templates/dashboard/report_detail.html` | Full report details; status update dropdown; "Confirm Outbreak" button (only when status = Accepted for Assessment) |
+| `dashboard/templates/dashboard/announcements_list.html` | Filterable table with type/audience/status badges; link to create new |
+| `dashboard/templates/dashboard/announcement_form.html` | Create form: title, type, **target audience** dropdown, content, prevention guidance, area, species |
+| `dashboard/templates/dashboard/announcement_detail.html` | Full announcement view; Publish button (draft) or Withdraw form with reason (published) |
+
+**Security:**
+- Custom `_authority_required` decorator — checks `request.user.role in ('AUTHORITY', 'ADMIN')`; non-authority users are redirected to login
+- All form submissions use Django CSRF tokens
+- Login uses Django's session-based `authenticate()` / `login()` — not JWT
+- All status changes and publish/withdraw actions write to the `AuditEvent` table
+- Confirm outbreak requires `status == ACCEPTED_FOR_ASSESSMENT` and shows a JS confirm dialog
+
+**Dashboard URL:** `http://127.0.0.1:8000/authority/`
+**Login credentials (seed data):** `admin` / `Admin@1234Dev`
+
+---
+
+### Files changed this session
+
+| File | Type of change |
+|---|---|
+| `mobile/livestock_app/android/app/src/main/AndroidManifest.xml` | Added INTERNET + location permissions, `usesCleartextTraffic` |
+| `mobile/livestock_app/lib/core/api/api_endpoints.dart` | Base URL fix + password reset endpoints |
+| `mobile/livestock_app/lib/features/auth/providers/auth_provider.dart` | Added `requestPasswordReset`, `confirmPasswordReset` |
+| `mobile/livestock_app/lib/features/auth/screens/login_screen.dart` | Added "Forgot password?" link |
+| `mobile/livestock_app/lib/features/auth/screens/forgot_password_screen.dart` | New file — 2-step password reset UI |
+| `mobile/livestock_app/lib/features/auth/screens/register_screen.dart` | Minor — no functional change |
+| `mobile/livestock_app/lib/router/app_router.dart` | Added `/forgot-password` route; updated public route guard |
+| `mobile/livestock_app/lib/features/dashboard/screens/dashboard_screen.dart` | Role-aware welcome and quick actions |
+| `mobile/livestock_app/lib/features/announcements/models/announcement.dart` | Added `targetAudience`, `targetAudienceDisplay`, `audienceColor`, `audienceIcon` |
+| `mobile/livestock_app/lib/features/announcements/screens/announcement_list_screen.dart` | Audience badge on cards |
+| `mobile/livestock_app/lib/features/announcements/screens/announcement_detail_screen.dart` | Audience badge in detail; `_Badge` icon support |
+| `backend/accounts/models.py` | Added `PasswordResetToken` model |
+| `backend/accounts/serializers.py` | Added `PasswordResetRequestSerializer`, `PasswordResetConfirmSerializer` |
+| `backend/accounts/views.py` | Added `PasswordResetRequestView`, `PasswordResetConfirmView` |
+| `backend/accounts/urls.py` | Added password reset URL patterns |
+| `backend/accounts/migrations/0002_password_reset_token.py` | New migration |
+| `backend/announcements/models.py` | Added `target_audience` field |
+| `backend/announcements/serializers.py` | Exposed `target_audience`, `target_audience_display` |
+| `backend/announcements/views.py` | Audience-filtered queryset and notifications |
+| `backend/announcements/migrations/0002_add_target_audience.py` | New migration |
+| `dashboard/__init__.py` | New file |
+| `dashboard/apps.py` | New file |
+| `dashboard/urls.py` | New file |
+| `dashboard/views.py` | New file |
+| `dashboard/templates/dashboard/base.html` | New file |
+| `dashboard/templates/dashboard/login.html` | New file |
+| `dashboard/templates/dashboard/home.html` | New file |
+| `dashboard/templates/dashboard/reports_list.html` | New file |
+| `dashboard/templates/dashboard/report_detail.html` | New file |
+| `dashboard/templates/dashboard/announcements_list.html` | New file |
+| `dashboard/templates/dashboard/announcement_form.html` | New file |
+| `dashboard/templates/dashboard/announcement_detail.html` | New file |
+
 **Phase 8 is complete.**

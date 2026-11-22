@@ -27,8 +27,22 @@ class OfficialAnnouncementViewSet(viewsets.ModelViewSet):
         user = self.request.user
         if user.role in ('AUTHORITY', 'ADMIN'):
             return OfficialAnnouncement.objects.all()
-        # Regular users only see published announcements
-        return OfficialAnnouncement.objects.filter(status=OfficialAnnouncement.STATUS_PUBLISHED)
+        # Farmers and vets only see published announcements meant for them
+        base = OfficialAnnouncement.objects.filter(status=OfficialAnnouncement.STATUS_PUBLISHED)
+        if user.role == 'VET':
+            return base.filter(
+                target_audience__in=[
+                    OfficialAnnouncement.AUDIENCE_ALL,
+                    OfficialAnnouncement.AUDIENCE_VETS,
+                ]
+            )
+        # FARMER (and any other authenticated role)
+        return base.filter(
+            target_audience__in=[
+                OfficialAnnouncement.AUDIENCE_ALL,
+                OfficialAnnouncement.AUDIENCE_FARMERS,
+            ]
+        )
 
     def perform_create(self, serializer):
         instance = serializer.save(issuing_authority=self.request.user)
@@ -97,8 +111,15 @@ class OfficialAnnouncementViewSet(viewsets.ModelViewSet):
         return Response(OfficialAnnouncementSerializer(instance, context={'request': request}).data)
 
     def _notify_users(self, announcement):
-        """Creates in-app notifications for all farmers and vets when announcement is published."""
-        recipients = CustomUser.objects.filter(role__in=['FARMER', 'VET'], is_active=True)
+        """Creates in-app notifications filtered by the announcement's target_audience."""
+        audience = announcement.target_audience
+        if audience == OfficialAnnouncement.AUDIENCE_FARMERS:
+            role_filter = ['FARMER']
+        elif audience == OfficialAnnouncement.AUDIENCE_VETS:
+            role_filter = ['VET']
+        else:
+            role_filter = ['FARMER', 'VET']
+        recipients = CustomUser.objects.filter(role__in=role_filter, is_active=True)
         notifications = [
             Notification(
                 recipient=user,

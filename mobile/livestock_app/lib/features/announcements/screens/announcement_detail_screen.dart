@@ -33,8 +33,10 @@ class AnnouncementDetailScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Type + status badges
-            Row(
+            // Type + status + audience badges
+            Wrap(
+              spacing: 8,
+              runSpacing: 6,
               children: [
                 _Badge(
                   label: ann.announcementTypeDisplay.isNotEmpty
@@ -42,8 +44,12 @@ class AnnouncementDetailScreen extends StatelessWidget {
                       : ann.announcementType,
                   color: ann.typeColor,
                 ),
-                const SizedBox(width: 8),
                 _Badge(label: ann.status, color: ann.statusColor),
+                _Badge(
+                  label: ann.targetAudienceDisplay,
+                  color: ann.audienceColor,
+                  icon: ann.audienceIcon,
+                ),
               ],
             ),
             const SizedBox(height: 12),
@@ -199,8 +205,9 @@ class AnnouncementDetailScreen extends StatelessWidget {
 class _Badge extends StatelessWidget {
   final String label;
   final Color color;
+  final IconData? icon;
 
-  const _Badge({required this.label, required this.color});
+  const _Badge({required this.label, required this.color, this.icon});
 
   @override
   Widget build(BuildContext context) {
@@ -211,13 +218,22 @@ class _Badge extends StatelessWidget {
         borderRadius: BorderRadius.circular(8),
         border: Border.all(color: color.withValues(alpha: 0.5)),
       ),
-      child: Text(
-        label,
-        style: TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.bold,
-          color: color,
-        ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (icon != null) ...[
+            Icon(icon, size: 12, color: color),
+            const SizedBox(width: 4),
+          ],
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
+          ),
+        ],
       ),
     );
   }

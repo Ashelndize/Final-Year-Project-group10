@@ -1,7 +1,7 @@
 from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from .models import CustomUser, FarmerProfile, VetProfile
+from .models import CustomUser, FarmerProfile, VetProfile, PasswordResetToken
 from audit.models import AuditEvent
 
 
@@ -81,3 +81,50 @@ class VetProfileSerializer(serializers.ModelSerializer):
         fields = ('id', 'user', 'license_number', 'specialization', 'clinic_name',
                   'clinic_address', 'is_verified', 'latitude', 'longitude', 'created_at', 'updated_at')
         read_only_fields = ('id', 'user', 'is_verified', 'created_at', 'updated_at')
+
+
+class PasswordResetRequestSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+    def validate_email(self, value):
+        try:
+            self._user = CustomUser.objects.get(email__iexact=value)
+        except CustomUser.DoesNotExist:
+            # Do not reveal whether the email exists (security best practice).
+            # We store None and silently succeed.
+            self._user = None
+        return value
+
+    def save(self):
+        if self._user is None:
+            return None
+        return PasswordResetToken.generate_for(self._user)
+
+
+class PasswordResetConfirmSerializer(serializers.Serializer):
+    token = serializers.CharField(max_length=6, min_length=6)
+    new_password = serializers.CharField(write_only=True, validators=[validate_password])
+    new_password2 = serializers.CharField(write_only=True)
+
+    def validate(self, attrs):
+        if attrs['new_password'] != attrs['new_password2']:
+            raise serializers.ValidationError({'new_password': 'Passwords do not match.'})
+        try:
+            reset_token = PasswordResetToken.objects.select_related('user').get(
+                token=attrs['token'], used=False
+            )
+        except PasswordResetToken.DoesNotExist:
+            raise serializers.ValidationError({'token': 'Invalid or expired reset code.'})
+        if not reset_token.is_valid:
+            raise serializers.ValidationError({'token': 'Reset code has expired. Please request a new one.'})
+        attrs['_reset_token'] = reset_token
+        return attrs
+
+    def save(self):
+        reset_token = self.validated_data['_reset_token']
+        user = reset_token.user
+        user.set_password(self.validated_data['new_password'])
+        user.save()
+        reset_token.used = True
+        reset_token.save()
+        return user

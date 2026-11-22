@@ -15,6 +15,8 @@ class OfficialAnnouncement {
   final DateTime? expiresAt;
   final DateTime? withdrawnAt;
   final String withdrawalReason;
+  final String targetAudience;
+  final String targetAudienceDisplay;
   final DateTime createdAt;
 
   const OfficialAnnouncement({
@@ -32,6 +34,8 @@ class OfficialAnnouncement {
     this.expiresAt,
     this.withdrawnAt,
     required this.withdrawalReason,
+    required this.targetAudience,
+    required this.targetAudienceDisplay,
     required this.createdAt,
   });
 
@@ -58,6 +62,8 @@ class OfficialAnnouncement {
           ? DateTime.parse(json['withdrawn_at'] as String)
           : null,
       withdrawalReason: json['withdrawal_reason'] as String? ?? '',
+      targetAudience: json['target_audience'] as String? ?? 'ALL',
+      targetAudienceDisplay: json['target_audience_display'] as String? ?? 'All Users',
       createdAt: DateTime.parse(json['created_at'] as String),
     );
   }
@@ -65,6 +71,28 @@ class OfficialAnnouncement {
   bool get isPublished => status == 'PUBLISHED';
   bool get isWithdrawn => status == 'WITHDRAWN';
   bool get isOutbreakAlert => announcementType == 'OUTBREAK_ALERT';
+
+  Color get audienceColor {
+    switch (targetAudience) {
+      case 'FARMERS_ONLY':
+        return Colors.green;
+      case 'VETS_ONLY':
+        return Colors.blue;
+      default:
+        return Colors.purple;
+    }
+  }
+
+  IconData get audienceIcon {
+    switch (targetAudience) {
+      case 'FARMERS_ONLY':
+        return Icons.agriculture;
+      case 'VETS_ONLY':
+        return Icons.local_hospital_outlined;
+      default:
+        return Icons.people_outline;
+    }
+  }
 
   Color get statusColor {
     switch (status) {

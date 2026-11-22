@@ -1,0 +1,96 @@
+{% extends "dashboard/base.html" %}
+{% block title %}Report #{{ report.pk }}{% endblock %}
+{% block page_title %}Disease Report #{{ report.pk }}{% endblock %}
+
+{% block content %}
+<div class="row g-3">
+  <!-- Report info -->
+  <div class="col-lg-8">
+    <div class="card border-0 shadow-sm mb-3">
+      <div class="card-header bg-white fw-semibold">Report Details</div>
+      <div class="card-body">
+        <dl class="row mb-0">
+          <dt class="col-sm-4">Submitted by</dt>
+          <dd class="col-sm-8">{{ report.reporter.get_full_name|default:report.reporter.username }} ({{ report.reporter.username }})</dd>
+          <dt class="col-sm-4">Species</dt>
+          <dd class="col-sm-8">{{ report.get_species_display }}</dd>
+          <dt class="col-sm-4">Observation date</dt>
+          <dd class="col-sm-8">{{ report.observation_date|date:"d F Y" }}</dd>
+          <dt class="col-sm-4">Area</dt>
+          <dd class="col-sm-8">{{ report.area_name|default:"Not specified" }}</dd>
+          <dt class="col-sm-4">Observed signs</dt>
+          <dd class="col-sm-8">{{ report.observed_signs }}</dd>
+          {% if report.notes %}
+          <dt class="col-sm-4">Notes</dt>
+          <dd class="col-sm-8">{{ report.notes }}</dd>
+          {% endif %}
+          <dt class="col-sm-4">Submitted</dt>
+          <dd class="col-sm-8">{{ report.created_at|date:"d F Y, H:i" }}</dd>
+        </dl>
+      </div>
+    </div>
+
+    {% if report.is_confirmed_outbreak %}
+    <div class="alert alert-danger d-flex align-items-center gap-2">
+      <i class="bi bi-exclamation-triangle-fill fs-5"></i>
+      <strong>This report has been confirmed as a disease outbreak.</strong>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Actions panel -->
+  <div class="col-lg-4">
+    <!-- Current status -->
+    <div class="card border-0 shadow-sm mb-3">
+      <div class="card-header bg-white fw-semibold">Current Status</div>
+      <div class="card-body text-center py-4">
+        {% if report.status == 'SUBMITTED' %}<span class="badge badge-submitted fs-6 px-3 py-2">Submitted</span>
+        {% elif report.status == 'UNDER_REVIEW' %}<span class="badge badge-review fs-6 px-3 py-2">Under Review</span>
+        {% elif report.status == 'ACCEPTED_FOR_ASSESSMENT' %}<span class="badge badge-accepted fs-6 px-3 py-2">Accepted for Assessment</span>
+        {% elif report.status == 'REJECTED' %}<span class="badge badge-rejected fs-6 px-3 py-2">Rejected</span>
+        {% elif report.status == 'CLARIFICATION_REQUESTED' %}<span class="badge badge-clarification fs-6 px-3 py-2">Clarification Requested</span>
+        {% else %}<span class="badge badge-closed fs-6 px-3 py-2">Closed</span>{% endif %}
+      </div>
+    </div>
+
+    <!-- Change status -->
+    {% if not report.is_confirmed_outbreak %}
+    <div class="card border-0 shadow-sm mb-3">
+      <div class="card-header bg-white fw-semibold">Update Status</div>
+      <div class="card-body">
+        <form method="post" action="{% url 'dashboard:report_review' report.pk %}">
+          {% csrf_token %}
+          <select name="status" class="form-select mb-3">
+            {% for val, label in status_choices %}
+              {% if val != 'SUBMITTED' %}
+              <option value="{{ val }}" {% if report.status == val %}selected{% endif %}>{{ label }}</option>
+              {% endif %}
+            {% endfor %}
+          </select>
+          <button class="btn btn-primary w-100">Update Status</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Confirm outbreak -->
+    {% if report.status == 'ACCEPTED_FOR_ASSESSMENT' %}
+    <div class="card border-danger border-0 shadow-sm">
+      <div class="card-header bg-danger text-white fw-semibold">Confirm Outbreak</div>
+      <div class="card-body">
+        <p class="small text-muted">This action is irreversible. Only confirm if investigation has verified a disease outbreak.</p>
+        <form method="post" action="{% url 'dashboard:report_confirm_outbreak' report.pk %}"
+              onsubmit="return confirm('Confirm this as an official disease outbreak? This cannot be undone.')">
+          {% csrf_token %}
+          <button class="btn btn-danger w-100"><i class="bi bi-exclamation-triangle me-1"></i>Confirm Outbreak</button>
+        </form>
+      </div>
+    </div>
+    {% endif %}
+    {% endif %}
+  </div>
+</div>
+
+<a href="{% url 'dashboard:reports_list' %}" class="btn btn-outline-secondary mt-2">
+  <i class="bi bi-arrow-left me-1"></i>Back to reports
+</a>
+{% endblock %}

@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from rest_framework import generics, status
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -9,6 +10,7 @@ from .models import FarmerProfile, VetProfile
 from .serializers import (
     RegisterSerializer, CustomTokenObtainPairSerializer,
     UserSerializer, FarmerProfileSerializer, VetProfileSerializer,
+    PasswordResetRequestSerializer, PasswordResetConfirmSerializer,
 )
 
 User = get_user_model()
@@ -72,3 +74,49 @@ class VetDirectoryView(generics.ListAPIView):
 
     def get_queryset(self):
         return VetProfile.objects.filter(is_verified=True).select_related('user')
+
+
+class PasswordResetRequestView(APIView):
+    """
+    POST { "email": "user@example.com" }
+
+    Always returns 200 (to avoid email enumeration).
+    In development (EMAIL_BACKEND=console), the OTP is also included in the
+    response under "dev_token" so the app can be tested without a mail server.
+    In production remove dev_token from the response and configure SMTP.
+    """
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        serializer = PasswordResetRequestSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        reset_token = serializer.save()
+
+        response_data = {
+            'detail': 'If an account with that email exists, a reset code has been sent.',
+        }
+
+        # Include token in response when email backend is console (dev only).
+        using_console_email = getattr(settings, 'EMAIL_BACKEND', '') == \
+            'django.core.mail.backends.console.EmailBackend'
+        if reset_token is not None and using_console_email:
+            response_data['dev_token'] = reset_token.token
+            response_data['dev_note'] = (
+                'Email delivery is not configured. '
+                'Use this code to reset your password (expires in 15 minutes).'
+            )
+
+        return Response(response_data, status=status.HTTP_200_OK)
+
+
+class PasswordResetConfirmView(APIView):
+    """
+    POST { "token": "123456", "new_password": "...", "new_password2": "..." }
+    """
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        serializer = PasswordResetConfirmSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response({'detail': 'Password has been reset successfully.'}, status=status.HTTP_200_OK)

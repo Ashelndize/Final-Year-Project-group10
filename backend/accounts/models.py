@@ -1,5 +1,8 @@
+import random
+import string
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.utils import timezone
 
 
 class CustomUser(AbstractUser):
@@ -68,3 +71,40 @@ class VetProfile(models.Model):
 
     def __str__(self):
         return f"VetProfile({self.user.username})"
+
+
+class PasswordResetToken(models.Model):
+    """
+    One-time 6-digit OTP for password reset.
+    In production, the token is emailed to the user.
+    For development (EMAIL_BACKEND=console), the token is also returned
+    in the API response so it can be used without a mail server.
+    """
+    user = models.ForeignKey(
+        CustomUser, on_delete=models.CASCADE, related_name='password_reset_tokens'
+    )
+    token = models.CharField(max_length=6)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+    used = models.BooleanField(default=False)
+
+    class Meta:
+        db_table = 'accounts_password_reset_token'
+
+    @classmethod
+    def generate_for(cls, user):
+        """Invalidate old tokens and create a new 6-digit OTP."""
+        cls.objects.filter(user=user, used=False).delete()
+        token = ''.join(random.choices(string.digits, k=6))
+        return cls.objects.create(
+            user=user,
+            token=token,
+            expires_at=timezone.now() + timezone.timedelta(minutes=15),
+        )
+
+    @property
+    def is_valid(self):
+        return not self.used and timezone.now() < self.expires_at
+
+    def __str__(self):
+        return f"PasswordResetToken({self.user.username})"

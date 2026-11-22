@@ -150,13 +150,31 @@ class _AnnouncementCard extends StatelessWidget {
                   ],
                 ),
               ],
-              if (announcement.publishedAt != null) ...[
-                const SizedBox(height: 4),
-                Text(
-                  'Published ${_formatDate(announcement.publishedAt!)}',
-                  style: const TextStyle(fontSize: 11, color: Colors.grey),
-                ),
-              ],
+              const SizedBox(height: 6),
+              Row(
+                children: [
+                  Icon(announcement.audienceIcon,
+                      size: 13, color: announcement.audienceColor,),
+                  const SizedBox(width: 4),
+                  Text(
+                    announcement.targetAudienceDisplay,
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: announcement.audienceColor,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  if (announcement.publishedAt != null) ...[
+                    const SizedBox(width: 10),
+                    const Text('·', style: TextStyle(color: Colors.grey)),
+                    const SizedBox(width: 10),
+                    Text(
+                      'Published ${_formatDate(announcement.publishedAt!)}',
+                      style: const TextStyle(fontSize: 11, color: Colors.grey),
+                    ),
+                  ],
+                ],
+              ),
             ],
           ),
         ),
