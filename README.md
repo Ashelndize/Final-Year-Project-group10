@@ -332,11 +332,51 @@ Before implementing features, review the master prompt and complete **Phase 0: R
 
 ## 17. Project Status
 
-**Current stage:** Requirements assessment and project planning.
+**Current stage:** Phase 8 complete — Deployment, Documentation, and Handover.
 
-**Next milestone:** Complete Phase 0 and prepare the Software Requirements Specification (SRS), use cases, system architecture, database planning, security requirements, and acceptance criteria.
+**All development phases are complete (Phases 0–8).** Phase 9 (final research report) is in progress.
 
-**Project status:** In development planning. Features described in this README are proposed system capabilities and should not be considered implemented until they have been developed and tested.
+### Implementation summary
+
+| Phase | Description | Status |
+|---|---|---|
+| 0 | Requirements assessment and planning | Complete |
+| 1 | Development environment and project scaffold | Complete |
+| 2 | Backend architecture, authentication, RBAC, core APIs | Complete |
+| 3 | Flutter mobile application — farmer-facing features | Complete |
+| 4 | GPS-based veterinary assistance and disease reporting | Complete |
+| 5 | Authority dashboard and official announcements | Complete |
+| 6 | Security hardening, offline sync, AI health assistant scaffold | Complete |
+| 7 | Integration testing, security testing, acceptance | Complete |
+| 8 | Deployment preparation, documentation, handover | Complete |
+| 9 | Final research report | In progress |
+
+### Test evidence
+
+- **149 automated tests passing** (75 unit + 47 integration backend + 27 Flutter)
+- 1 defect found and fixed during Phase 7 integration testing (DEF-001 — JWT audit gap)
+- Full acceptance test results: `docs/03_testing/acceptance-test-results.md`
+
+### Quick start (development)
+
+```bash
+# Backend
+cd backend
+python -m venv venv && source venv/bin/activate    # Windows: venv\Scripts\activate
+pip install -r requirements.txt
+cp ../.env.example .env  # then fill in real values
+python manage.py migrate
+python manage.py seed_data
+python manage.py runserver
+
+# Mobile
+cd mobile/livestock_app
+flutter pub get
+flutter run
+```
+
+Full setup instructions: `docs/02_setup/environment-setup-guide.md`
+Deployment guide: `docs/04_deployment/deployment-guide.md`
 
 ## 18. Author and Academic Context
 

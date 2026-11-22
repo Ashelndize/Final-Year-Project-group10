@@ -309,6 +309,22 @@ DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='noreply@livestock.loc
 
 
 # ---------------------------------------------------------------------------
+# Production security headers
+# (All default to False/off so dev works without extra config.
+#  Set the matching env vars after HTTPS is confirmed in production.)
+# ---------------------------------------------------------------------------
+
+SECURE_SSL_REDIRECT = config('DJANGO_SECURE_SSL_REDIRECT', default=False, cast=bool)
+SECURE_HSTS_SECONDS = config('DJANGO_SECURE_HSTS_SECONDS', default=0, cast=int)
+SECURE_HSTS_INCLUDE_SUBDOMAINS = config('DJANGO_SECURE_HSTS_INCLUDE_SUBDOMAINS', default=False, cast=bool)
+SECURE_HSTS_PRELOAD = config('DJANGO_SECURE_HSTS_PRELOAD', default=False, cast=bool)
+SESSION_COOKIE_SECURE = config('SESSION_COOKIE_SECURE', default=False, cast=bool)
+CSRF_COOKIE_SECURE = config('CSRF_COOKIE_SECURE', default=False, cast=bool)
+SECURE_CONTENT_TYPE_NOSNIFF = True   # always safe; prevents MIME-sniffing
+X_FRAME_OPTIONS = 'DENY'             # always safe; dashboard does not use frames
+
+
+# ---------------------------------------------------------------------------
 # Logging
 # ---------------------------------------------------------------------------
 

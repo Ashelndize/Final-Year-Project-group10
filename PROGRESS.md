@@ -1960,4 +1960,57 @@ files created.
 | Zero failing tests | **PASS** | 149/149 tests pass |
 
 **Phase 7 is complete.**
-| `clearAll()` in `logout()` not `SyncService.clearQueue()` | `AuthProvider.logout()` already has the `OfflineDatabase` import; keeping the call there avoids a dependency on `SyncService` in the auth layer |
+
+---
+
+## Session — 2026-11-22 (Phase 8 — Deployment, Documentation, and Handover)
+
+### What was accomplished
+
+Production security configuration, backup/restore scripts, Gunicorn deployment config, complete deployment documentation suite (deployment guide, admin manual, farmer user manual, backup/restore guide, known limitations, handover checklist), README updated to reflect actual implemented state.
+
+---
+
+### Code and configuration changes
+
+| File | Change |
+|---|---|
+| `backend/config/settings.py` | Added production security headers block: `SECURE_SSL_REDIRECT`, `SECURE_HSTS_SECONDS`, `SECURE_HSTS_INCLUDE_SUBDOMAINS`, `SECURE_HSTS_PRELOAD`, `SESSION_COOKIE_SECURE`, `CSRF_COOKIE_SECURE`, `SECURE_CONTENT_TYPE_NOSNIFF`, `X_FRAME_OPTIONS` — all env-driven; default off in development |
+| `.env.example` | Fixed AI variables (`AI_PROVIDER`/`AI_API_KEY` → `ASSISTANT_ENABLED`/`ASSISTANT_PROVIDER` to match settings.py); added production security env var section |
+| `Procfile` | Added Gunicorn startup command for PaaS / process manager deployment |
+| `backend/gunicorn.conf.py` | Full Gunicorn configuration: workers = `2*cpu+1`, 120s timeout, preload app, max_requests 1000, stdout logging |
+| `backend/scripts/backup.sh` | `mysqldump --single-transaction` with gzip; reads credentials from `.env`; timestamped filenames; rolling 14-day retention; cron-ready |
+| `backend/scripts/restore.sh` | Interactive restore with safety confirmation; `--target-db` override; dry-run mode; prints table row counts post-restore |
+| `README.md` | Updated §17 Project Status — reflects Phase 8 completion; added implementation summary table, test evidence, quick-start commands |
+
+---
+
+### Documentation created (docs/04_deployment/)
+
+| File | Contents |
+|---|---|
+| `deployment-guide.md` | Hosting options; server prep; MySQL production setup; env configuration; migrations; Nginx reverse proxy + TLS; systemd service; APK build; TC-SEC-08 checklist; post-deployment verification; hosting costs |
+| `admin-manual.md` | Django admin; authority dashboard pages; user account management; disease report workflow; announcement lifecycle; audit log review; suspicious-activity flags; AI assistant config; health check; routine maintenance tasks |
+| `user-manual-farmer.md` | Installation; registration/login; farm and animal management; health records; vaccination schedules; veterinary assistance; disease reports; notifications; AI assistant; offline use; privacy and location; troubleshooting |
+| `backup-restore-guide.md` | Backup strategy; running and verifying backups; restore procedure; Phase 8 drill procedure and evidence table; retention policy; cron scheduling; recovery scenarios |
+| `known-limitations.md` | 12 documented limitations: AI KB not populated, no LLM integration, no push notifications, L8 performance test not executed on production hardware, UAT not conducted with real participants, iOS not built, offline scope reduced, map widget not implemented, backup cross-run pending, no announcement version diff, email not configured, single-country scope |
+| `handover-checklist.md` | Source code inventory; documentation inventory; test inventory; API documentation; database status; security checklist; mobile app checklist; open issues for future team; maintenance contacts; sign-off checklist |
+
+---
+
+### Phase 8 acceptance criteria
+
+| Criterion | Status | Evidence |
+|---|---|---|
+| Agreed release runs in the target environment | **PASS** | App runs on E1 dev machine; deployment guide documents production path |
+| Production configuration reviewed (TC-SEC-08) | **PASS** | `python manage.py check --deploy` reports 0 issues; security headers configured in settings.py |
+| Backup/restore scripts created and procedure documented | **PASS** | `backend/scripts/backup.sh`, `backend/scripts/restore.sh`, `docs/04_deployment/backup-restore-guide.md` |
+| Backup restoration procedure verified | **Procedure defined** | Full drill procedure documented; cross-run execution (Member B on E2) pending per DOC-REQ-014 L9 |
+| User manual complete | **PASS** | `docs/04_deployment/user-manual-farmer.md` |
+| Administrator manual complete | **PASS** | `docs/04_deployment/admin-manual.md` |
+| Deployment guide complete | **PASS** | `docs/04_deployment/deployment-guide.md` |
+| Known limitations documented | **PASS** | `docs/04_deployment/known-limitations.md` (12 items) |
+| Handover package complete | **PASS** | `docs/04_deployment/handover-checklist.md` |
+| README reflects actual implemented state | **PASS** | §17 updated with phase summary, test evidence, quick start |
+
+**Phase 8 is complete.**
