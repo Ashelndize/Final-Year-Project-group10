@@ -3,131 +3,221 @@
 {% block page_title %}Overview{% endblock %}
 
 {% block content %}
-<!-- Summary cards -->
+<div class="page-header">
+  <h4>Good day, {{ request.user.first_name|default:request.user.username }}!</h4>
+  <p>Here is a summary of disease reports and announcements in the system.</p>
+</div>
+
+<!-- Stat cards -->
 <div class="row g-3 mb-4">
   <div class="col-sm-6 col-xl-3">
-    <div class="card border-0 shadow-sm h-100">
-      <div class="card-body d-flex align-items-center gap-3">
-        <div class="rounded-3 bg-primary bg-opacity-10 p-3"><i class="bi bi-file-earmark-text text-primary fs-4"></i></div>
-        <div>
-          <div class="fs-3 fw-bold">{{ report_stats.total }}</div>
-          <div class="text-muted small">Total Reports</div>
-        </div>
+    <div class="stat-card">
+      <div class="stat-icon" style="background:#dbeafe;">
+        <i class="bi bi-file-earmark-medical" style="color:#1d4ed8;"></i>
+      </div>
+      <div>
+        <div class="stat-value">{{ report_stats.total }}</div>
+        <div class="stat-label">Total Reports</div>
       </div>
     </div>
   </div>
   <div class="col-sm-6 col-xl-3">
-    <div class="card border-0 shadow-sm h-100">
-      <div class="card-body d-flex align-items-center gap-3">
-        <div class="rounded-3 bg-warning bg-opacity-10 p-3"><i class="bi bi-hourglass-split text-warning fs-4"></i></div>
-        <div>
-          <div class="fs-3 fw-bold">{{ report_stats.submitted }}</div>
-          <div class="text-muted small">Awaiting Review</div>
-        </div>
+    <div class="stat-card">
+      <div class="stat-icon" style="background:#fef3c7;">
+        <i class="bi bi-hourglass-split" style="color:#b45309;"></i>
+      </div>
+      <div>
+        <div class="stat-value">{{ report_stats.submitted }}</div>
+        <div class="stat-label">Awaiting Review</div>
       </div>
     </div>
   </div>
   <div class="col-sm-6 col-xl-3">
-    <div class="card border-0 shadow-sm h-100">
-      <div class="card-body d-flex align-items-center gap-3">
-        <div class="rounded-3 bg-danger bg-opacity-10 p-3"><i class="bi bi-exclamation-triangle text-danger fs-4"></i></div>
-        <div>
-          <div class="fs-3 fw-bold">{{ report_stats.confirmed }}</div>
-          <div class="text-muted small">Confirmed Outbreaks</div>
-        </div>
+    <div class="stat-card">
+      <div class="stat-icon" style="background:#fee2e2;">
+        <i class="bi bi-exclamation-triangle-fill" style="color:#b91c1c;"></i>
+      </div>
+      <div>
+        <div class="stat-value">{{ report_stats.confirmed }}</div>
+        <div class="stat-label">Confirmed Outbreaks</div>
       </div>
     </div>
   </div>
   <div class="col-sm-6 col-xl-3">
-    <div class="card border-0 shadow-sm h-100">
-      <div class="card-body d-flex align-items-center gap-3">
-        <div class="rounded-3 bg-success bg-opacity-10 p-3"><i class="bi bi-megaphone text-success fs-4"></i></div>
-        <div>
-          <div class="fs-3 fw-bold">{{ ann_stats.published }}</div>
-          <div class="text-muted small">Live Announcements</div>
-        </div>
+    <div class="stat-card">
+      <div class="stat-icon" style="background:#dcfce7;">
+        <i class="bi bi-megaphone-fill" style="color:#15803d;"></i>
+      </div>
+      <div>
+        <div class="stat-value">{{ ann_stats.published }}</div>
+        <div class="stat-label">Live Announcements</div>
       </div>
     </div>
   </div>
 </div>
 
-<div class="row g-3">
-  <!-- Recent reports -->
-  <div class="col-lg-6">
-    <div class="card border-0 shadow-sm">
-      <div class="card-header bg-white fw-semibold d-flex justify-content-between align-items-center">
-        Recent Disease Reports
-        <a href="{% url 'dashboard:reports_list' %}" class="btn btn-sm btn-outline-secondary">View all</a>
-      </div>
-      <div class="card-body p-0">
-        {% if recent_reports %}
-        <div class="table-responsive">
-          <table class="table table-hover mb-0 small">
-            <thead class="table-light"><tr><th>ID</th><th>Reporter</th><th>Species</th><th>Status</th><th>Date</th></tr></thead>
-            <tbody>
-              {% for r in recent_reports %}
-              <tr class="cursor-pointer" onclick="window.location='{% url 'dashboard:report_detail' r.pk %}'">
-                <td>#{{ r.pk }}</td>
-                <td>{{ r.reporter.username }}</td>
-                <td>{{ r.get_species_display }}</td>
-                <td>
-                  {% if r.status == 'SUBMITTED' %}<span class="badge badge-submitted">Submitted</span>
-                  {% elif r.status == 'UNDER_REVIEW' %}<span class="badge badge-review">Under Review</span>
-                  {% elif r.status == 'ACCEPTED_FOR_ASSESSMENT' %}<span class="badge badge-accepted">Accepted</span>
-                  {% elif r.status == 'REJECTED' %}<span class="badge badge-rejected">Rejected</span>
-                  {% elif r.status == 'CLARIFICATION_REQUESTED' %}<span class="badge badge-clarification">Clarification</span>
-                  {% else %}<span class="badge badge-closed">Closed</span>{% endif %}
-                  {% if r.is_confirmed_outbreak %}<span class="badge badge-outbreak ms-1">Outbreak</span>{% endif %}
-                </td>
-                <td>{{ r.created_at|date:"d M" }}</td>
-              </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
+<!-- Status breakdown row -->
+<div class="row g-3 mb-4">
+  <div class="col-md-4">
+    <div class="card h-100">
+      <div class="card-header">Report Status Breakdown</div>
+      <div class="card-body">
+        {% with total=report_stats.total %}
+        {% if total > 0 %}
+          {% for label, value, color in report_breakdown %}
+          <div class="mb-3">
+            <div class="d-flex justify-content-between mb-1" style="font-size:.8rem;">
+              <span>{{ label }}</span><span class="fw-600">{{ value }}</span>
+            </div>
+            <div class="progress" style="height:6px;border-radius:4px;">
+              <div class="progress-bar" style="width:{% widthratio value total 100 %}%;background:{{ color }};border-radius:4px;"></div>
+            </div>
+          </div>
+          {% endfor %}
         {% else %}
-        <p class="text-muted p-3 mb-0">No reports yet.</p>
+          <div class="empty-state py-3"><i class="bi bi-bar-chart" style="font-size:2rem;"></i><p>No reports yet</p></div>
         {% endif %}
+        {% endwith %}
       </div>
     </div>
   </div>
-
-  <!-- Recent announcements -->
-  <div class="col-lg-6">
-    <div class="card border-0 shadow-sm">
-      <div class="card-header bg-white fw-semibold d-flex justify-content-between align-items-center">
-        Recent Announcements
-        <a href="{% url 'dashboard:announcement_create' %}" class="btn btn-sm btn-success"><i class="bi bi-plus"></i> New</a>
-      </div>
-      <div class="card-body p-0">
-        {% if recent_announcements %}
-        <div class="table-responsive">
-          <table class="table table-hover mb-0 small">
-            <thead class="table-light"><tr><th>Title</th><th>Audience</th><th>Status</th></tr></thead>
-            <tbody>
-              {% for a in recent_announcements %}
-              <tr onclick="window.location='{% url 'dashboard:announcement_detail' a.pk %}'" style="cursor:pointer;">
-                <td>{{ a.title|truncatechars:35 }}</td>
-                <td>
-                  {% if a.target_audience == 'FARMERS_ONLY' %}<span class="badge bg-success">Farmers</span>
-                  {% elif a.target_audience == 'VETS_ONLY' %}<span class="badge bg-primary">Vets</span>
-                  {% else %}<span class="badge bg-purple" style="background:#6f42c1">All</span>{% endif %}
-                </td>
-                <td>
-                  {% if a.status == 'PUBLISHED' %}<span class="badge badge-published">Published</span>
-                  {% elif a.status == 'DRAFT' %}<span class="badge badge-draft">Draft</span>
-                  {% elif a.status == 'WITHDRAWN' %}<span class="badge badge-withdrawn">Withdrawn</span>
-                  {% else %}<span class="badge badge-expired">Expired</span>{% endif %}
-                </td>
-              </tr>
-              {% endfor %}
-            </tbody>
-          </table>
+  <div class="col-md-4">
+    <div class="card h-100">
+      <div class="card-header">Announcement Status</div>
+      <div class="card-body">
+        <div class="d-flex flex-column gap-3 mt-1">
+          <div class="d-flex align-items-center justify-content-between p-3 rounded-3" style="background:#dcfce7;">
+            <div class="d-flex align-items-center gap-2">
+              <i class="bi bi-broadcast" style="color:#15803d;font-size:1.1rem;"></i>
+              <span style="font-size:.85rem;font-weight:600;color:#15803d;">Published</span>
+            </div>
+            <span style="font-size:1.3rem;font-weight:800;color:#0f172a;">{{ ann_stats.published }}</span>
+          </div>
+          <div class="d-flex align-items-center justify-content-between p-3 rounded-3" style="background:#e0f2fe;">
+            <div class="d-flex align-items-center gap-2">
+              <i class="bi bi-pencil-square" style="color:#0369a1;font-size:1.1rem;"></i>
+              <span style="font-size:.85rem;font-weight:600;color:#0369a1;">Drafts</span>
+            </div>
+            <span style="font-size:1.3rem;font-weight:800;color:#0f172a;">{{ ann_stats.draft }}</span>
+          </div>
+          <div class="d-flex align-items-center justify-content-between p-3 rounded-3" style="background:#f1f5f9;">
+            <div class="d-flex align-items-center gap-2">
+              <i class="bi bi-archive" style="color:#64748b;font-size:1.1rem;"></i>
+              <span style="font-size:.85rem;font-weight:600;color:#64748b;">Total</span>
+            </div>
+            <span style="font-size:1.3rem;font-weight:800;color:#0f172a;">{{ ann_stats.total }}</span>
+          </div>
         </div>
-        {% else %}
-        <p class="text-muted p-3 mb-0">No announcements yet.</p>
-        {% endif %}
       </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card h-100">
+      <div class="card-header">Quick Actions</div>
+      <div class="card-body d-flex flex-column gap-2">
+        <a href="{% url 'dashboard:reports_list' %}?status=SUBMITTED" class="btn btn-outline-secondary text-start d-flex align-items-center gap-2">
+          <i class="bi bi-clock-history text-warning"></i> Review pending reports
+          {% if report_stats.submitted > 0 %}
+            <span class="badge bg-warning text-dark ms-auto">{{ report_stats.submitted }}</span>
+          {% endif %}
+        </a>
+        <a href="{% url 'dashboard:announcement_create' %}" class="btn btn-outline-secondary text-start d-flex align-items-center gap-2">
+          <i class="bi bi-plus-circle text-success"></i> New announcement
+        </a>
+        <a href="{% url 'dashboard:reports_list' %}?status=ACCEPTED_FOR_ASSESSMENT" class="btn btn-outline-secondary text-start d-flex align-items-center gap-2">
+          <i class="bi bi-exclamation-triangle text-danger"></i> Accepted for assessment
+          {% if report_stats.accepted > 0 %}
+            <span class="badge bg-danger ms-auto">{{ report_stats.accepted }}</span>
+          {% endif %}
+        </a>
+        <a href="{% url 'dashboard:announcements_list' %}?status=DRAFT" class="btn btn-outline-secondary text-start d-flex align-items-center gap-2">
+          <i class="bi bi-send text-primary"></i> Publish drafts
+          {% if ann_stats.draft > 0 %}
+            <span class="badge bg-primary ms-auto">{{ ann_stats.draft }}</span>
+          {% endif %}
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Recent tables -->
+<div class="row g-3">
+  <div class="col-lg-6">
+    <div class="card">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-file-earmark-medical me-2 text-muted"></i>Recent Reports</span>
+        <a href="{% url 'dashboard:reports_list' %}" style="font-size:.78rem;color:#16a34a;text-decoration:none;">View all →</a>
+      </div>
+      {% if recent_reports %}
+      <div class="table-responsive">
+        <table class="table mb-0">
+          <thead><tr><th>Reporter</th><th>Species</th><th>Status</th><th>Date</th></tr></thead>
+          <tbody>
+            {% for r in recent_reports %}
+            <tr onclick="window.location='{% url 'dashboard:report_detail' r.pk %}'">
+              <td>
+                <div style="font-weight:600;font-size:.83rem;">{{ r.reporter.username }}</div>
+                <div style="font-size:.73rem;color:#94a3b8;">#{{ r.pk }}</div>
+              </td>
+              <td style="font-size:.83rem;">{{ r.get_species_display }}</td>
+              <td>
+                {% if r.status == 'SUBMITTED' %}<span class="status-badge badge-submitted">Submitted</span>
+                {% elif r.status == 'UNDER_REVIEW' %}<span class="status-badge badge-review">In Review</span>
+                {% elif r.status == 'ACCEPTED_FOR_ASSESSMENT' %}<span class="status-badge badge-accepted">Accepted</span>
+                {% elif r.status == 'REJECTED' %}<span class="status-badge badge-rejected">Rejected</span>
+                {% elif r.status == 'CLARIFICATION_REQUESTED' %}<span class="status-badge badge-clarification">Clarification</span>
+                {% else %}<span class="status-badge badge-closed">Closed</span>{% endif %}
+                {% if r.is_confirmed_outbreak %}<span class="status-badge badge-outbreak ms-1">Outbreak</span>{% endif %}
+              </td>
+              <td style="font-size:.78rem;color:#94a3b8;">{{ r.created_at|date:"d M" }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="empty-state"><i class="bi bi-file-earmark-x"></i><p>No reports submitted yet.</p></div>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="col-lg-6">
+    <div class="card">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-megaphone me-2 text-muted"></i>Recent Announcements</span>
+        <a href="{% url 'dashboard:announcement_create' %}" style="font-size:.78rem;color:#16a34a;text-decoration:none;">+ New →</a>
+      </div>
+      {% if recent_announcements %}
+      <div class="table-responsive">
+        <table class="table mb-0">
+          <thead><tr><th>Title</th><th>Audience</th><th>Status</th></tr></thead>
+          <tbody>
+            {% for a in recent_announcements %}
+            <tr onclick="window.location='{% url 'dashboard:announcement_detail' a.pk %}'">
+              <td style="font-size:.83rem;font-weight:600;max-width:160px;">
+                <div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ a.title }}</div>
+                <div style="font-size:.72rem;color:#94a3b8;">{{ a.created_at|date:"d M Y" }}</div>
+              </td>
+              <td>
+                {% if a.target_audience == 'FARMERS_ONLY' %}<span class="status-badge badge-farmers"><i class="bi bi-tree"></i> Farmers</span>
+                {% elif a.target_audience == 'VETS_ONLY' %}<span class="status-badge badge-vets"><i class="bi bi-hospital"></i> Vets</span>
+                {% else %}<span class="status-badge badge-all"><i class="bi bi-people"></i> All</span>{% endif %}
+              </td>
+              <td>
+                {% if a.status == 'PUBLISHED' %}<span class="status-badge badge-published">Live</span>
+                {% elif a.status == 'DRAFT' %}<span class="status-badge badge-draft">Draft</span>
+                {% elif a.status == 'WITHDRAWN' %}<span class="status-badge badge-withdrawn">Withdrawn</span>
+                {% else %}<span class="status-badge badge-expired">Expired</span>{% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="empty-state"><i class="bi bi-megaphone"></i><p>No announcements yet.<br><a href="{% url 'dashboard:announcement_create' %}" style="color:#16a34a;">Create the first one →</a></p></div>
+      {% endif %}
     </div>
   </div>
 </div>

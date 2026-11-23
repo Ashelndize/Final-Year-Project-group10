@@ -7,7 +7,7 @@ from django.db.models import Count, Q
 
 from reports.models import DiseaseReport
 from announcements.models import OfficialAnnouncement
-from accounts.models import CustomUser
+from accounts.models import CustomUser, PasswordResetToken
 from farms.models import Area
 from audit.models import AuditEvent
 
@@ -89,12 +89,18 @@ def home(request):
     )
     recent_reports = DiseaseReport.objects.select_related('reporter').order_by('-created_at')[:5]
     recent_announcements = OfficialAnnouncement.objects.order_by('-created_at')[:5]
-
+    report_breakdown = [
+        ('Submitted',          report_stats['submitted'],    '#3b82f6'),
+        ('Under Review',       report_stats['under_review'], '#f59e0b'),
+        ('Accepted',           report_stats['accepted'],     '#10b981'),
+        ('Confirmed Outbreak', report_stats['confirmed'],    '#ef4444'),
+    ]
     return render(request, 'dashboard/home.html', {
         'report_stats': report_stats,
         'ann_stats': ann_stats,
         'recent_reports': recent_reports,
         'recent_announcements': recent_announcements,
+        'report_breakdown': report_breakdown,
     })
 
 
@@ -342,3 +348,60 @@ def announcement_withdraw(request, pk):
     )
     messages.success(request, 'Announcement withdrawn.')
     return redirect('dashboard:announcement_detail', pk=pk)
+
+
+# ---------------------------------------------------------------------------
+# Password reset (dashboard)
+# ---------------------------------------------------------------------------
+
+def forgot_password(request):
+    if request.method == 'POST':
+        email = request.POST.get('email', '').strip()
+        try:
+            user = CustomUser.objects.get(email__iexact=email, role__in=('AUTHORITY', 'ADMIN'))
+            reset_token = PasswordResetToken.generate_for(user)
+            # Store token in session so confirm page can use it in dev mode
+            request.session['_pw_reset_email'] = email
+            # In dev (console email), show token directly
+            from django.conf import settings
+            dev_mode = getattr(settings, 'EMAIL_BACKEND', '') == \
+                'django.core.mail.backends.console.EmailBackend'
+            if dev_mode:
+                request.session['_pw_reset_dev_token'] = reset_token.token
+        except CustomUser.DoesNotExist:
+            pass  # Silent — do not reveal whether email exists
+        return redirect('dashboard:forgot_password_confirm')
+    return render(request, 'dashboard/forgot_password.html')
+
+
+def forgot_password_confirm(request):
+    dev_token = request.session.get('_pw_reset_dev_token')
+    if request.method == 'POST':
+        token = request.POST.get('token', '').strip()
+        new_password = request.POST.get('new_password', '')
+        new_password2 = request.POST.get('new_password2', '')
+        if new_password != new_password2:
+            messages.error(request, 'Passwords do not match.')
+            return render(request, 'dashboard/forgot_password_confirm.html', {'dev_token': dev_token})
+        if len(new_password) < 8:
+            messages.error(request, 'Password must be at least 8 characters.')
+            return render(request, 'dashboard/forgot_password_confirm.html', {'dev_token': dev_token})
+        try:
+            reset_token = PasswordResetToken.objects.select_related('user').get(
+                token=token, used=False
+            )
+        except PasswordResetToken.DoesNotExist:
+            messages.error(request, 'Invalid or expired reset code. Please request a new one.')
+            return render(request, 'dashboard/forgot_password_confirm.html', {'dev_token': dev_token})
+        if not reset_token.is_valid:
+            messages.error(request, 'Reset code has expired. Please request a new one.')
+            return render(request, 'dashboard/forgot_password_confirm.html', {'dev_token': dev_token})
+        reset_token.user.set_password(new_password)
+        reset_token.user.save()
+        reset_token.used = True
+        reset_token.save()
+        request.session.pop('_pw_reset_dev_token', None)
+        request.session.pop('_pw_reset_email', None)
+        messages.success(request, 'Password reset successfully. Please sign in with your new password.')
+        return redirect('dashboard:login')
+    return render(request, 'dashboard/forgot_password_confirm.html', {'dev_token': dev_token})

@@ -2,95 +2,150 @@
 {% block title %}Report #{{ report.pk }}{% endblock %}
 {% block page_title %}Disease Report #{{ report.pk }}{% endblock %}
 
+{% block topbar_actions %}
+<a href="{% url 'dashboard:reports_list' %}" class="btn btn-sm btn-outline-secondary">
+  <i class="bi bi-arrow-left me-1"></i>All Reports
+</a>
+{% endblock %}
+
 {% block content %}
 <div class="row g-3">
-  <!-- Report info -->
-  <div class="col-lg-8">
-    <div class="card border-0 shadow-sm mb-3">
-      <div class="card-header bg-white fw-semibold">Report Details</div>
-      <div class="card-body">
-        <dl class="row mb-0">
-          <dt class="col-sm-4">Submitted by</dt>
-          <dd class="col-sm-8">{{ report.reporter.get_full_name|default:report.reporter.username }} ({{ report.reporter.username }})</dd>
-          <dt class="col-sm-4">Species</dt>
-          <dd class="col-sm-8">{{ report.get_species_display }}</dd>
-          <dt class="col-sm-4">Observation date</dt>
-          <dd class="col-sm-8">{{ report.observation_date|date:"d F Y" }}</dd>
-          <dt class="col-sm-4">Area</dt>
-          <dd class="col-sm-8">{{ report.area_name|default:"Not specified" }}</dd>
-          <dt class="col-sm-4">Observed signs</dt>
-          <dd class="col-sm-8">{{ report.observed_signs }}</dd>
-          {% if report.notes %}
-          <dt class="col-sm-4">Notes</dt>
-          <dd class="col-sm-8">{{ report.notes }}</dd>
-          {% endif %}
-          <dt class="col-sm-4">Submitted</dt>
-          <dd class="col-sm-8">{{ report.created_at|date:"d F Y, H:i" }}</dd>
-        </dl>
-      </div>
-    </div>
 
+  <!-- Left: details -->
+  <div class="col-lg-8">
+
+    <!-- Status banner for outbreaks -->
     {% if report.is_confirmed_outbreak %}
-    <div class="alert alert-danger d-flex align-items-center gap-2">
-      <i class="bi bi-exclamation-triangle-fill fs-5"></i>
-      <strong>This report has been confirmed as a disease outbreak.</strong>
+    <div class="alert d-flex align-items-center gap-3 mb-3 p-3" style="background:#fee2e2;border-radius:12px;">
+      <i class="bi bi-exclamation-triangle-fill" style="font-size:1.5rem;color:#b91c1c;"></i>
+      <div>
+        <div style="font-weight:700;color:#b91c1c;">Confirmed Disease Outbreak</div>
+        <div style="font-size:.82rem;color:#991b1b;">This report has been officially confirmed as a disease outbreak.</div>
+      </div>
     </div>
     {% endif %}
-  </div>
 
-  <!-- Actions panel -->
-  <div class="col-lg-4">
-    <!-- Current status -->
-    <div class="card border-0 shadow-sm mb-3">
-      <div class="card-header bg-white fw-semibold">Current Status</div>
-      <div class="card-body text-center py-4">
-        {% if report.status == 'SUBMITTED' %}<span class="badge badge-submitted fs-6 px-3 py-2">Submitted</span>
-        {% elif report.status == 'UNDER_REVIEW' %}<span class="badge badge-review fs-6 px-3 py-2">Under Review</span>
-        {% elif report.status == 'ACCEPTED_FOR_ASSESSMENT' %}<span class="badge badge-accepted fs-6 px-3 py-2">Accepted for Assessment</span>
-        {% elif report.status == 'REJECTED' %}<span class="badge badge-rejected fs-6 px-3 py-2">Rejected</span>
-        {% elif report.status == 'CLARIFICATION_REQUESTED' %}<span class="badge badge-clarification fs-6 px-3 py-2">Clarification Requested</span>
-        {% else %}<span class="badge badge-closed fs-6 px-3 py-2">Closed</span>{% endif %}
+    <!-- Main details card -->
+    <div class="card mb-3">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-file-earmark-medical me-2 text-muted"></i>Report Details</span>
+        {% if report.status == 'SUBMITTED' %}<span class="status-badge badge-submitted">Submitted</span>
+        {% elif report.status == 'UNDER_REVIEW' %}<span class="status-badge badge-review">Under Review</span>
+        {% elif report.status == 'ACCEPTED_FOR_ASSESSMENT' %}<span class="status-badge badge-accepted">Accepted for Assessment</span>
+        {% elif report.status == 'REJECTED' %}<span class="status-badge badge-rejected">Rejected</span>
+        {% elif report.status == 'CLARIFICATION_REQUESTED' %}<span class="status-badge badge-clarification">Clarification Requested</span>
+        {% else %}<span class="status-badge badge-closed">Closed</span>{% endif %}
+      </div>
+      <div class="card-body">
+        <div class="row g-3">
+          <div class="col-sm-6">
+            <div class="p-3 rounded-3" style="background:#f8fafc;">
+              <div style="font-size:.7rem;text-transform:uppercase;letter-spacing:.8px;color:#94a3b8;font-weight:600;margin-bottom:4px;">Submitted by</div>
+              <div style="font-weight:700;font-size:.92rem;">{{ report.reporter.get_full_name|default:report.reporter.username }}</div>
+              <div style="font-size:.78rem;color:#64748b;">@{{ report.reporter.username }} &bull; {{ report.reporter.get_role_display|default:report.reporter.role }}</div>
+            </div>
+          </div>
+          <div class="col-sm-6">
+            <div class="p-3 rounded-3" style="background:#f8fafc;">
+              <div style="font-size:.7rem;text-transform:uppercase;letter-spacing:.8px;color:#94a3b8;font-weight:600;margin-bottom:4px;">Species</div>
+              <div style="font-weight:700;font-size:.92rem;">{{ report.get_species_display }}</div>
+              <div style="font-size:.78rem;color:#64748b;">Observed: {{ report.observation_date|date:"d F Y" }}</div>
+            </div>
+          </div>
+          <div class="col-sm-6">
+            <div class="p-3 rounded-3" style="background:#f8fafc;">
+              <div style="font-size:.7rem;text-transform:uppercase;letter-spacing:.8px;color:#94a3b8;font-weight:600;margin-bottom:4px;">Location / Area</div>
+              <div style="font-weight:600;font-size:.88rem;">{{ report.area_name|default:"Not specified" }}</div>
+            </div>
+          </div>
+          <div class="col-sm-6">
+            <div class="p-3 rounded-3" style="background:#f8fafc;">
+              <div style="font-size:.7rem;text-transform:uppercase;letter-spacing:.8px;color:#94a3b8;font-weight:600;margin-bottom:4px;">Submitted on</div>
+              <div style="font-weight:600;font-size:.88rem;">{{ report.created_at|date:"d F Y, H:i" }}</div>
+            </div>
+          </div>
+        </div>
+
+        <hr class="divider my-3">
+
+        <div class="mb-3">
+          <div style="font-size:.78rem;text-transform:uppercase;letter-spacing:.8px;color:#94a3b8;font-weight:600;margin-bottom:8px;">Observed Signs &amp; Symptoms</div>
+          <div class="p-3 rounded-3" style="background:#fef9f0;border:1px solid #fde68a;font-size:.88rem;line-height:1.6;white-space:pre-wrap;">{{ report.observed_signs }}</div>
+        </div>
+
+        {% if report.notes %}
+        <div>
+          <div style="font-size:.78rem;text-transform:uppercase;letter-spacing:.8px;color:#94a3b8;font-weight:600;margin-bottom:8px;">Additional Notes</div>
+          <div class="p-3 rounded-3" style="background:#f8fafc;border:1px solid #e2e8f0;font-size:.88rem;line-height:1.6;white-space:pre-wrap;">{{ report.notes }}</div>
+        </div>
+        {% endif %}
       </div>
     </div>
+  </div>
 
-    <!-- Change status -->
+  <!-- Right: actions -->
+  <div class="col-lg-4">
+
     {% if not report.is_confirmed_outbreak %}
-    <div class="card border-0 shadow-sm mb-3">
-      <div class="card-header bg-white fw-semibold">Update Status</div>
+    <!-- Update status -->
+    <div class="card mb-3">
+      <div class="card-header"><i class="bi bi-arrow-repeat me-2 text-muted"></i>Update Status</div>
       <div class="card-body">
         <form method="post" action="{% url 'dashboard:report_review' report.pk %}">
           {% csrf_token %}
-          <select name="status" class="form-select mb-3">
-            {% for val, label in status_choices %}
-              {% if val != 'SUBMITTED' %}
-              <option value="{{ val }}" {% if report.status == val %}selected{% endif %}>{{ label }}</option>
-              {% endif %}
-            {% endfor %}
-          </select>
-          <button class="btn btn-primary w-100">Update Status</button>
+          <div class="mb-3">
+            <label class="form-label">New Status</label>
+            <select name="status" class="form-select">
+              {% for val, label in status_choices %}
+                {% if val != 'SUBMITTED' %}
+                <option value="{{ val }}" {% if report.status == val %}selected{% endif %}>{{ label }}</option>
+                {% endif %}
+              {% endfor %}
+            </select>
+          </div>
+          <button class="btn btn-primary w-100">
+            <i class="bi bi-check-circle me-1"></i>Update Status
+          </button>
         </form>
       </div>
     </div>
 
     <!-- Confirm outbreak -->
     {% if report.status == 'ACCEPTED_FOR_ASSESSMENT' %}
-    <div class="card border-danger border-0 shadow-sm">
-      <div class="card-header bg-danger text-white fw-semibold">Confirm Outbreak</div>
+    <div class="card" style="border:1px solid #fecaca !important;">
+      <div class="card-header" style="background:#fee2e2 !important;border-color:#fecaca !important;">
+        <i class="bi bi-exclamation-triangle-fill me-2 text-danger"></i>
+        <span style="color:#b91c1c;">Confirm Outbreak</span>
+      </div>
       <div class="card-body">
-        <p class="small text-muted">This action is irreversible. Only confirm if investigation has verified a disease outbreak.</p>
+        <p style="font-size:.82rem;color:#64748b;margin-bottom:16px;">
+          This action is <strong>irreversible</strong>. Only confirm after thorough investigation has verified a disease outbreak.
+        </p>
         <form method="post" action="{% url 'dashboard:report_confirm_outbreak' report.pk %}"
-              onsubmit="return confirm('Confirm this as an official disease outbreak? This cannot be undone.')">
+              onsubmit="return confirm('Are you sure you want to confirm this as an official disease outbreak? This cannot be undone.')">
           {% csrf_token %}
-          <button class="btn btn-danger w-100"><i class="bi bi-exclamation-triangle me-1"></i>Confirm Outbreak</button>
+          <button class="btn btn-danger w-100">
+            <i class="bi bi-exclamation-triangle me-1"></i>Confirm as Outbreak
+          </button>
         </form>
       </div>
     </div>
     {% endif %}
+    {% else %}
+    <!-- Already confirmed -->
+    <div class="card" style="border:1px solid #fecaca !important;">
+      <div class="card-body text-center py-4">
+        <div style="width:52px;height:52px;background:#fee2e2;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;">
+          <i class="bi bi-exclamation-triangle-fill" style="color:#b91c1c;font-size:1.3rem;"></i>
+        </div>
+        <div style="font-weight:700;color:#b91c1c;margin-bottom:4px;">Outbreak Confirmed</div>
+        <div style="font-size:.8rem;color:#94a3b8;">This report has been officially confirmed as a disease outbreak. Consider issuing an announcement.</div>
+        <a href="{% url 'dashboard:announcement_create' %}" class="btn btn-sm btn-primary mt-3 w-100">
+          <i class="bi bi-megaphone me-1"></i>Create Announcement
+        </a>
+      </div>
+    </div>
     {% endif %}
   </div>
 </div>
-
-<a href="{% url 'dashboard:reports_list' %}" class="btn btn-outline-secondary mt-2">
-  <i class="bi bi-arrow-left me-1"></i>Back to reports
-</a>
 {% endblock %}

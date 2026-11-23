@@ -20,4 +20,8 @@ urlpatterns = [
     path('announcements/<int:pk>/', views.announcement_detail, name='announcement_detail'),
     path('announcements/<int:pk>/publish/', views.announcement_publish, name='announcement_publish'),
     path('announcements/<int:pk>/withdraw/', views.announcement_withdraw, name='announcement_withdraw'),
+
+    # Password reset
+    path('forgot-password/', views.forgot_password, name='forgot_password'),
+    path('forgot-password/confirm/', views.forgot_password_confirm, name='forgot_password_confirm'),
 ]

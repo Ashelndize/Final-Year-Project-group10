@@ -3,66 +3,107 @@
 {% block page_title %}Disease Reports{% endblock %}
 
 {% block content %}
-<div class="card border-0 shadow-sm">
-  <div class="card-header bg-white d-flex flex-wrap gap-2 align-items-center justify-content-between">
-    <span class="fw-semibold">All Reports</span>
-    <form method="get" class="d-flex gap-2 flex-wrap">
-      <select name="status" class="form-select form-select-sm" style="width:auto;" onchange="this.form.submit()">
-        <option value="">All Statuses</option>
-        {% for val, label in status_choices %}
-          <option value="{{ val }}" {% if status_filter == val %}selected{% endif %}>{{ label }}</option>
-        {% endfor %}
-      </select>
-      <select name="species" class="form-select form-select-sm" style="width:auto;" onchange="this.form.submit()">
-        <option value="">All Species</option>
-        {% for val, label in species_choices %}
-          <option value="{{ val }}" {% if species_filter == val %}selected{% endif %}>{{ label }}</option>
-        {% endfor %}
-      </select>
+<div class="page-header d-flex flex-wrap align-items-start justify-content-between gap-2">
+  <div>
+    <h4>Disease Reports</h4>
+    <p>Review and act on reports submitted by veterinarians.</p>
+  </div>
+</div>
+
+<!-- Filters -->
+<div class="card mb-3">
+  <div class="card-body py-3">
+    <form method="get" class="row g-2 align-items-end">
+      <div class="col-sm-auto">
+        <label class="form-label mb-1">Status</label>
+        <select name="status" class="form-select form-select-sm" style="min-width:160px;" onchange="this.form.submit()">
+          <option value="">All Statuses</option>
+          {% for val, label in status_choices %}
+            <option value="{{ val }}" {% if status_filter == val %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-sm-auto">
+        <label class="form-label mb-1">Species</label>
+        <select name="species" class="form-select form-select-sm" style="min-width:140px;" onchange="this.form.submit()">
+          <option value="">All Species</option>
+          {% for val, label in species_choices %}
+            <option value="{{ val }}" {% if species_filter == val %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      {% if status_filter or species_filter %}
+      <div class="col-sm-auto">
+        <a href="{% url 'dashboard:reports_list' %}" class="btn btn-sm btn-outline-secondary">
+          <i class="bi bi-x-circle me-1"></i>Clear filters
+        </a>
+      </div>
+      {% endif %}
     </form>
   </div>
-  <div class="card-body p-0">
-    {% if reports %}
-    <div class="table-responsive">
-      <table class="table table-hover mb-0">
-        <thead class="table-light">
-          <tr>
-            <th>ID</th><th>Reporter</th><th>Species</th><th>Area</th>
-            <th>Observed</th><th>Status</th><th>Outbreak</th><th>Submitted</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for r in reports %}
-          <tr onclick="window.location='{% url 'dashboard:report_detail' r.pk %}'" style="cursor:pointer;">
-            <td class="fw-semibold">#{{ r.pk }}</td>
-            <td>{{ r.reporter.username }}</td>
-            <td>{{ r.get_species_display }}</td>
-            <td>{{ r.area_name|default:"-" }}</td>
-            <td>{{ r.observation_date|date:"d M Y" }}</td>
-            <td>
-              {% if r.status == 'SUBMITTED' %}<span class="badge badge-submitted">Submitted</span>
-              {% elif r.status == 'UNDER_REVIEW' %}<span class="badge badge-review">Under Review</span>
-              {% elif r.status == 'ACCEPTED_FOR_ASSESSMENT' %}<span class="badge badge-accepted">Accepted</span>
-              {% elif r.status == 'REJECTED' %}<span class="badge badge-rejected">Rejected</span>
-              {% elif r.status == 'CLARIFICATION_REQUESTED' %}<span class="badge badge-clarification">Clarification</span>
-              {% else %}<span class="badge badge-closed">Closed</span>{% endif %}
-            </td>
-            <td>
-              {% if r.is_confirmed_outbreak %}
-                <span class="badge badge-outbreak"><i class="bi bi-exclamation-triangle-fill me-1"></i>Yes</span>
-              {% else %}-{% endif %}
-            </td>
-            <td class="text-muted small">{{ r.created_at|date:"d M Y" }}</td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-    {% else %}
-    <div class="text-center text-muted py-5">
-      <i class="bi bi-file-earmark-x fs-1 d-block mb-2"></i>No reports match your filters.
-    </div>
-    {% endif %}
+</div>
+
+<!-- Table -->
+<div class="card">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <span>
+      {% if reports %}{{ reports|length }} report{{ reports|length|pluralize }}{% else %}No reports{% endif %}
+      {% if status_filter or species_filter %}<span class="text-muted" style="font-weight:400;"> (filtered)</span>{% endif %}
+    </span>
   </div>
+  {% if reports %}
+  <div class="table-responsive">
+    <table class="table mb-0">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Reported by</th>
+          <th>Species</th>
+          <th>Area</th>
+          <th>Observed</th>
+          <th>Status</th>
+          <th>Outbreak</th>
+          <th>Submitted</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in reports %}
+        <tr onclick="window.location='{% url 'dashboard:report_detail' r.pk %}'">
+          <td style="font-weight:700;color:#64748b;font-size:.8rem;">#{{ r.pk }}</td>
+          <td>
+            <div style="font-weight:600;font-size:.85rem;">{{ r.reporter.username }}</div>
+            <div style="font-size:.73rem;color:#94a3b8;">{{ r.reporter.get_full_name }}</div>
+          </td>
+          <td style="font-size:.85rem;">{{ r.get_species_display }}</td>
+          <td style="font-size:.83rem;color:#64748b;">{{ r.area_name|default:"—" }}</td>
+          <td style="font-size:.82rem;color:#64748b;">{{ r.observation_date|date:"d M Y" }}</td>
+          <td>
+            {% if r.status == 'SUBMITTED' %}<span class="status-badge badge-submitted">Submitted</span>
+            {% elif r.status == 'UNDER_REVIEW' %}<span class="status-badge badge-review">In Review</span>
+            {% elif r.status == 'ACCEPTED_FOR_ASSESSMENT' %}<span class="status-badge badge-accepted">Accepted</span>
+            {% elif r.status == 'REJECTED' %}<span class="status-badge badge-rejected">Rejected</span>
+            {% elif r.status == 'CLARIFICATION_REQUESTED' %}<span class="status-badge badge-clarification">Clarification</span>
+            {% else %}<span class="status-badge badge-closed">Closed</span>{% endif %}
+          </td>
+          <td>
+            {% if r.is_confirmed_outbreak %}
+              <span class="status-badge badge-outbreak"><i class="bi bi-exclamation-triangle-fill"></i> Yes</span>
+            {% else %}
+              <span style="color:#cbd5e1;font-size:.8rem;">—</span>
+            {% endif %}
+          </td>
+          <td style="font-size:.78rem;color:#94a3b8;">{{ r.created_at|date:"d M Y" }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <i class="bi bi-file-earmark-x"></i>
+    <p>No reports match your current filters.<br>
+    {% if status_filter or species_filter %}<a href="{% url 'dashboard:reports_list' %}" style="color:#16a34a;">Clear filters</a>{% endif %}</p>
+  </div>
+  {% endif %}
 </div>
 {% endblock %}
