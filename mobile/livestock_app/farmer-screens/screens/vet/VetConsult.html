@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Record consultation</title>
+</head>
+<body>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#1E6B45}a:hover{color:#154D31}
+</style>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #F5F6F1; font-family: Inter, system-ui, sans-serif; color: #1B2620; display: flex; flex-direction: column; overflow: hidden">
+
+<header style="padding: 16px 12px 8px; display: flex; align-items: center; gap: 4px">
+<a href="VetRequest.html" aria-label="Back to request" style="width: 44px; height: 44px; border-radius: 22px; display: flex; align-items: center; justify-content: center; color: #1B2620">
+<svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"></path></svg>
+</a>
+<h1 style="margin: 0; flex: 1; font-size: 18px; font-weight: 600">Record consultation</h1>
+</header>
+
+<form style="flex: 1; padding: 0 20px; display: flex; flex-direction: column; gap: 14px; overflow: hidden">
+
+<div style="background: #FFFFFF; border-radius: 14px; padding: 12px 14px; display: flex; align-items: center; gap: 12px">
+<span style="width: 40px; height: 40px; border-radius: 20px; background: #E3F0E8; color: #1E6B45; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700">CT</span>
+<span style="flex: 1; display: flex; flex-direction: column; gap: 2px">
+<span style="font-size: 15px; font-weight: 600">Gatare · TAG 0012</span>
+<span style="font-size: 13px; color: #5B675F">Umurage Farm · Jean H.</span>
+</span>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="visit-date" style="font-size: 14px; font-weight: 600">Visit date</label>
+<input id="visit-date" type="text" value="16 Nov 2026" style="height: 44px; box-sizing: border-box; border-radius: 12px; border: 1px solid #D5DBD2; background: #FFFFFF; padding: 0 14px; font-family: inherit; font-size: 15px; color: #1B2620">
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="findings" style="font-size: 14px; font-weight: 600">Findings</label>
+<textarea id="findings" rows="3" style="box-sizing: border-box; border-radius: 12px; border: 1px solid #D5DBD2; background: #FFFFFF; padding: 10px 14px; font-family: inherit; font-size: 15px; color: #1B2620; resize: none">Mild lameness, front left foot.</textarea>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="treatment" style="font-size: 14px; font-weight: 600">Treatment given</label>
+<textarea id="treatment" rows="3" placeholder="Describe the treatment you gave" style="box-sizing: border-box; border-radius: 12px; border: 1px solid #D5DBD2; background: #FFFFFF; padding: 10px 14px; font-family: inherit; font-size: 15px; color: #1B2620; resize: none"></textarea>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="follow-up" style="font-size: 14px; font-weight: 600">Follow-up date (optional)</label>
+<input id="follow-up" type="text" value="23 Nov 2026" style="height: 44px; box-sizing: border-box; border-radius: 12px; border: 1px solid #D5DBD2; background: #FFFFFF; padding: 0 14px; font-family: inherit; font-size: 15px; color: #1B2620">
+</div>
+
+<div style="display: flex; align-items: flex-start; gap: 10px; padding: 12px 14px; border-radius: 12px; background: #FFFFFF; border: 1px solid #E2E6DF">
+<input id="suspect" type="checkbox" style="width: 22px; height: 22px; margin: 0; accent-color: #1E6B45; flex-shrink: 0">
+<label for="suspect" style="font-size: 14px; line-height: 1.45">I suspect a reportable disease. Start a disease report after saving.</label>
+</div>
+
+<p style="margin: 0; font-size: 13px; color: #5B675F">This record will show as “Recorded by vet” in the farmer's history.</p>
+
+</form>
+
+<div style="padding: 12px 20px 20px; background: #FFFFFF; border-top: 1px solid #E2E6DF; flex-shrink: 0">
+<a href="VetReportForm.html" style="height: 48px; border-radius: 24px; background: #1E6B45; color: #FFFFFF; font-size: 15px; font-weight: 600; text-decoration: none; display: flex; align-items: center; justify-content: center">Save consultation</a>
+</div>
+
+</div>
+</body>
+</html>
