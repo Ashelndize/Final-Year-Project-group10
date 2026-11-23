@@ -2181,3 +2181,121 @@ New model, serializers, views, and URLs added to the `accounts` app.
 | `dashboard/templates/dashboard/announcement_detail.html` | New file |
 
 **Phase 8 is complete.**
+
+
+---
+
+## Session -- 2026-11-23
+
+### What was accomplished
+
+---
+
+#### 1. Farmer main screen -- full feature implementation
+
+All tabs on the farmer dashboard were wired up to match the HTML mockups in mobile/livestock_app/farmer-screens/screens/:
+
+- **Home tab (DashboardScreen):** role-aware greeting, farm summary cards, quick actions (Add Animal, Request Vet, Report Disease), recent animals list, recent announcements strip
+- **Animals tab (AnimalListScreen):** search + filter, per-animal health status badges, navigation to detail and add-animal
+- **Vets tab (VetDirectoryScreen):** verified vet cards with specialization, clinic, and Request Assistance button
+- **Assistant tab (AssistantScreen):** AI health assistant chat UI with message bubbles
+- **Profile tab:** user info card (name, email, phone), role badge, Edit profile + Log out buttons
+
+---
+
+#### 2. Vet dashboard -- 6 new screens
+
+A complete vet-side experience was built to match mobile/livestock_app/farmer-screens/screens/vet/:
+
+| File | Screen | Matches mockup |
+|---|---|---|
+| lib/features/veterinary/screens/vet_main_screen.dart | 4-tab shell (Requests / Reports / Alerts / Profile) | -- |
+| lib/features/veterinary/screens/vet_requests_screen.dart | Greeting, Verified badge, availability toggle, stat cards, new requests list, today/follow-ups | VetHome.html |
+| lib/features/veterinary/screens/vet_request_detail_screen.dart | Farmer card, animal + message card, shared records, Decline / Accept | VetRequest.html |
+| lib/features/veterinary/screens/vet_consult_screen.dart | Visit date, findings, treatment, follow-up date, disease suspect checkbox | VetConsult.html |
+| lib/features/veterinary/screens/vet_report_form_screen.dart | Blue info banner, species/district/sector/date grid, affected count, sign chips, notes, photo | VetReportForm.html |
+| lib/features/veterinary/screens/vet_reports_screen.dart | Report list with status chips (All / Needs reply / In review / Closed), clarification reply flow | VetReports.html |
+
+**Role-based routing** added to app_router.dart: after login, vets are redirected to /vet-dashboard, farmers to /dashboard.
+
+---
+
+#### 3. Auth screens redesign
+
+All three auth screens were rewritten to match the HTML mockups:
+
+**login_screen.dart**
+- Green logo box (72 px, border-radius 20), Smart Livestock title/subtitle, language button
+- Single Username field (username only -- no phone option in login UI)
+- 52 px pill Sign in button, right-aligned Forgot password?, New here? create-account link
+
+**register_screen.dart**
+- Added required Phone number field (validated >= 9 digits)
+- First name + Last name in a side-by-side row
+- Role picker: two _RoleButton toggle widgets (Farmer / Veterinarian) with info note for VET
+- Fields: First name, Last name, Phone, Username, Email (optional), Role, Password, Confirm password
+
+**forgot_password_screen.dart**
+- Step 1: lock icon in green circle, Phone number or email contact field, Send code button
+- Step 2: 6 individual digit boxes with auto-advance and backspace-to-previous (KeyboardListener), 60 s resend countdown (Timer.periodic), live password-rules checklist (turns green as conditions are met)
+
+---
+
+#### 4. Backend -- phone number support
+
+| File | Change |
+|---|---|
+| backend/accounts/models.py | phone field changed to null=True, unique=True |
+| backend/accounts/migrations/0003_customuser_phone_unique.py | 3-step migration: make nullable, convert blanks to NULL via RunPython, add UNIQUE constraint |
+| backend/accounts/backends.py | New file -- PhoneOrUsernameBackend(ModelBackend): tries exact username match first, then normalises input to digits and matches stored phone numbers |
+| backend/config/settings.py | Registered accounts.backends.PhoneOrUsernameBackend in AUTHENTICATION_BACKENDS |
+| backend/accounts/serializers.py | RegisterSerializer: phone required, email optional; validate_phone() added; PasswordResetRequestSerializer rewritten -- contact CharField accepts phone or email |
+| backend/accounts/views.py | PasswordResetRequestView response message updated to mention phone or email |
+
+---
+
+#### 5. Profile edit screen (all users)
+
+A shared ProfileEditScreen was added at /profile/edit, reachable from the Profile tab of both farmer and vet dashboards.
+
+- Pre-fills all fields from current user on load; also fetches the role-specific profile (/auth/farmer-profile/ or /auth/vet-profile/) for extra fields
+- **Farmer fields:** First name, Last name, Phone, Email, Location, Bio
+- **Vet fields:** First name, Last name, Phone, Email, License number, Specialization, Clinic name, Clinic address
+- Save PATCHes /auth/me/ then the profile endpoint, calls AuthProvider.refreshUser() to update in-memory user, shows success snackbar, pops back
+
+| File | Change |
+|---|---|
+| lib/features/auth/screens/profile_edit_screen.dart | New file |
+| lib/features/auth/providers/auth_provider.dart | Added refreshUser(); register() gains phone param; requestPasswordReset() sends contact key |
+| lib/features/dashboard/screens/farmer_main_screen.dart | Edit profile button in _ProfileTab |
+| lib/features/veterinary/screens/vet_main_screen.dart | Edit profile button in _VetProfileTab |
+| lib/router/app_router.dart | Added /profile/edit route, vet routes, role-based redirect on login |
+
+---
+
+#### 6. Code quality -- 69 linting issues resolved
+
+dart fix --apply automatically resolved all 69 info-level issues across 9 files:
+
+| Rule | Fixes |
+|---|---|
+| prefer_const_constructors | 27 |
+| require_trailing_commas | 37 |
+| curly_braces_in_flow_control_structures | 3 |
+| prefer_final_fields | 1 |
+
+Final result: dart analyze -- No issues found.
+
+---
+
+### Current project state
+
+| Area | Status |
+|---|---|
+| Backend auth (login, register, password reset) | Complete -- username login, phone in registration, phone-or-email reset |
+| Flutter auth screens | Complete -- login, register, forgot/reset password all match HTML mockups |
+| Farmer dashboard (all 5 tabs) | Complete |
+| Vet dashboard (all 4 tabs + 4 sub-screens) | Complete |
+| Profile edit (farmer + vet) | Complete |
+| Code quality (dart analyze) | 0 issues |
+| Authority web dashboard | Complete (previous session) |

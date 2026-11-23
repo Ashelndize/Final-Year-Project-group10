@@ -288,6 +288,7 @@ AXES_LOCKOUT_PARAMETERS = ['username', 'ip_address']
 
 AUTHENTICATION_BACKENDS = [
     'axes.backends.AxesStandaloneBackend',
+    'accounts.backends.PhoneOrUsernameBackend',
     'django.contrib.auth.backends.ModelBackend',
 ]
 

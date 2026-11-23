@@ -78,9 +78,9 @@ class VetDirectoryView(generics.ListAPIView):
 
 class PasswordResetRequestView(APIView):
     """
-    POST { "email": "user@example.com" }
+    POST { "contact": "<phone_or_email>" }
 
-    Always returns 200 (to avoid email enumeration).
+    Always returns 200 (to avoid enumeration).
     In development (EMAIL_BACKEND=console), the OTP is also included in the
     response under "dev_token" so the app can be tested without a mail server.
     In production remove dev_token from the response and configure SMTP.
@@ -93,7 +93,7 @@ class PasswordResetRequestView(APIView):
         reset_token = serializer.save()
 
         response_data = {
-            'detail': 'If an account with that email exists, a reset code has been sent.',
+            'detail': 'If an account matches that phone number or email, a reset code has been sent.',
         }
 
         # Include token in response when email backend is console (dev only).

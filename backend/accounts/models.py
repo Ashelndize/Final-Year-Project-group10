@@ -13,7 +13,7 @@ class CustomUser(AbstractUser):
         ADMIN = 'ADMIN', 'System Administrator'
 
     role = models.CharField(max_length=20, choices=Role.choices, default=Role.FARMER)
-    phone = models.CharField(max_length=20, blank=True)
+    phone = models.CharField(max_length=20, blank=True, null=True, unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

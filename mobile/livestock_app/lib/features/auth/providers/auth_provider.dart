@@ -84,6 +84,7 @@ class AuthProvider extends ChangeNotifier {
     required String password,
     required String password2,
     required String role,
+    String phone = '',
   }) async {
     _loading = true;
     _error = null;
@@ -99,6 +100,7 @@ class AuthProvider extends ChangeNotifier {
           'password': password,
           'password2': password2,
           'role': role,
+          if (phone.isNotEmpty) 'phone': phone,
         },
         auth: false,
       );
@@ -120,14 +122,14 @@ class AuthProvider extends ChangeNotifier {
 
   /// Returns a map with keys: `success` (bool), `message` (String),
   /// and optionally `devToken` (String) when the backend is in dev mode.
-  Future<Map<String, dynamic>> requestPasswordReset(String email) async {
+  Future<Map<String, dynamic>> requestPasswordReset(String contact) async {
     _loading = true;
     _error = null;
     notifyListeners();
     try {
       final data = await ApiClient.post(
         ApiEndpoints.passwordResetRequest,
-        {'email': email},
+        {'contact': contact},
         auth: false,
       );
       _loading = false;
@@ -179,6 +181,15 @@ class AuthProvider extends ChangeNotifier {
       notifyListeners();
       return {'success': false, 'message': _error!};
     }
+  }
+
+  /// Re-fetches the current user from /auth/me/ and updates the in-memory user.
+  Future<void> refreshUser() async {
+    try {
+      final data = await ApiClient.get(ApiEndpoints.me);
+      _user = User.fromJson(data);
+      notifyListeners();
+    } catch (_) {}
   }
 
   Future<void> logout() async {

@@ -13,17 +13,34 @@ class RegisterSerializer(serializers.ModelSerializer):
         model = CustomUser
         fields = ('username', 'email', 'first_name', 'last_name', 'phone', 'role', 'password', 'password2')
         extra_kwargs = {
-            'email': {'required': True},
+            # Phone is the primary contact — required for registration.
+            'phone': {'required': True},
+            # Email is optional (users may not have one).
+            'email': {'required': False, 'allow_blank': True, 'default': ''},
             'first_name': {'required': True},
             'last_name': {'required': True},
         }
+
+    def validate_phone(self, value):
+        """Normalise and enforce minimum length."""
+        import re
+        digits = re.sub(r'\D', '', value)
+        if len(digits) < 9:
+            raise serializers.ValidationError('Enter a valid phone number (at least 9 digits).')
+        # Check uniqueness manually (the model enforces it too, but a friendly
+        # error here beats a database IntegrityError).
+        if CustomUser.objects.filter(phone=value).exists():
+            raise serializers.ValidationError('A user with this phone number already exists.')
+        return value
 
     def validate(self, attrs):
         if attrs['password'] != attrs.pop('password2'):
             raise serializers.ValidationError({'password': 'Passwords do not match.'})
         role = attrs.get('role', CustomUser.Role.FARMER)
         if role not in (CustomUser.Role.FARMER, CustomUser.Role.VET):
-            raise serializers.ValidationError({'role': 'Self-registration is only allowed for Farmer or Veterinarian roles.'})
+            raise serializers.ValidationError(
+                {'role': 'Self-registration is only allowed for Farmer or Veterinarian roles.'}
+            )
         return attrs
 
     def create(self, validated_data):
@@ -84,15 +101,44 @@ class VetProfileSerializer(serializers.ModelSerializer):
 
 
 class PasswordResetRequestSerializer(serializers.Serializer):
-    email = serializers.EmailField()
+    """
+    Accepts either an email address or a phone number under the ``contact`` key.
+    Returns silently if no matching account is found (avoids enumeration).
+    """
+    contact = serializers.CharField(max_length=255)
 
-    def validate_email(self, value):
-        try:
-            self._user = CustomUser.objects.get(email__iexact=value)
-        except CustomUser.DoesNotExist:
-            # Do not reveal whether the email exists (security best practice).
-            # We store None and silently succeed.
-            self._user = None
+    def validate_contact(self, value):
+        import re
+        value = value.strip()
+        user = None
+
+        if '@' in value:
+            # Looks like an email — validate format then look up.
+            from django.core.validators import validate_email as _validate_email
+            from django.core.exceptions import ValidationError as DjangoValidationError
+            try:
+                _validate_email(value)
+            except DjangoValidationError:
+                raise serializers.ValidationError('Enter a valid email address.')
+            try:
+                user = CustomUser.objects.get(email__iexact=value)
+            except CustomUser.DoesNotExist:
+                user = None
+        else:
+            # Treat as phone — normalise and look up.
+            digits = re.sub(r'\D', '', value)
+            if len(digits) < 9:
+                raise serializers.ValidationError(
+                    'Enter a valid phone number or email address.'
+                )
+            # Match stored phone numbers by digits only.
+            for candidate in CustomUser.objects.filter(phone__isnull=False):
+                if re.sub(r'\D', '', candidate.phone or '') == digits:
+                    user = candidate
+                    break
+
+        # Silently store None if not found (no enumeration).
+        self._user = user
         return value
 
     def save(self):
